@@ -1,12 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?><project name="Untitled Gantt Project" company="" webLink="http://" view-date="2018-06-05" view-index="0" gantt-divider-location="300" resource-divider-location="300" version="2.8.6" locale="fr">
-    <description/>
-    <view zooming-state="default:2" id="gantt-chart">
+<?xml version="1.0" encoding="UTF-8"?><project name="ACAR" company="EXIA.CESI" webLink="http://" view-date="2018-06-05" view-index="0" gantt-divider-location="300" resource-divider-location="300" version="2.8.6" locale="fr">
+    <description><![CDATA[Le 6ème projet de l'EXIA.CESI A1.
+Il consiste en la création d'un véhicule automatisé capable d'analyser son environnement.]]></description>
+    <view zooming-state="default:0" id="gantt-chart">
         <field id="tpd3" name="Nom" width="167" order="0"/>
         <field id="tpd4" name="Date de début" width="64" order="1"/>
         <field id="tpd5" name="Date de fin" width="64" order="2"/>
         <option id="taskLabelUp" value=""/>
         <option id="taskLabelLeft" value="id"/>
-        <option id="color.recent"><![CDATA[#ff66ff #cc66ff #9966ff #6666ff #6633ff #3333ff #6699ff #66ccff #66ff99 #66ffcc]]></option>
+        <option id="color.recent"><![CDATA[#ffff99 #ffcc99 #ff66ff #cc66ff #9966ff #6666ff #6633ff #3333ff #6699ff #66ccff]]></option>
     </view>
     <view id="resource-table">
         <field id="0" name="Nom" width="210" order="0"/>
@@ -37,40 +38,44 @@
             <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
         </taskproperties>
         <task id="3" name="Etude préliminaire" color="#ff6666" meeting="false" start="2018-06-08" duration="2" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
-            <depend id="59" type="2" difference="0" hardness="Strong"/>
-        </task>
-        <task id="59" name="Etude scientifique" color="#ff9933" meeting="false" start="2018-06-12" duration="2" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
             <depend id="4" type="2" difference="0" hardness="Strong"/>
-        </task>
-        <task id="4" name="Montage prototype" color="#ffcc33" meeting="false" start="2018-06-14" duration="2" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
             <depend id="5" type="2" difference="0" hardness="Strong"/>
+            <depend id="6" type="2" difference="0" hardness="Strong"/>
+            <depend id="9" type="2" difference="0" hardness="Strong"/>
         </task>
-        <task id="5" name="Mesures physiques" color="#ffcc66" meeting="false" start="2018-06-18" duration="2" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
-        <task id="6" name="Capteurs" meeting="false" start="2018-06-08" duration="6" complete="0" expand="true">
-            <task id="7" name="Suiveur de ligne" color="#ffff33" meeting="false" start="2018-06-08" duration="2" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
+        <task id="59" name="Etude scientifique" color="#ff9933" meeting="false" start="2018-06-08" duration="2" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
+            <depend id="4" type="2" difference="0" hardness="Strong"/>
+            <depend id="5" type="2" difference="0" hardness="Strong"/>
+            <depend id="6" type="2" difference="0" hardness="Strong"/>
+            <depend id="9" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="4" name="Montage prototype" color="#ffcc33" meeting="false" start="2018-06-12" duration="2" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+        <task id="5" name="Mesures physiques" color="#ffff99" meeting="false" start="2018-06-12" duration="2" complete="0" thirdDate="2018-06-18" thirdDate-constraint="0" expand="true"/>
+        <task id="6" name="Capteurs" meeting="false" start="2018-06-12" duration="6" complete="0" expand="true">
+            <task id="7" name="Suiveur de ligne" color="#ffff33" meeting="false" start="2018-06-12" duration="2" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
                 <depend id="8" type="2" difference="0" hardness="Strong"/>
             </task>
-            <task id="8" name="Distances et vitesse" color="#ccff66" meeting="false" start="2018-06-12" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="8" name="Distances et vitesse" color="#ccff66" meeting="false" start="2018-06-14" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
         </task>
-        <task id="13" name="Algorithmique" meeting="false" start="2018-06-08" duration="14" complete="0" expand="true">
-            <task id="14" name="Découverte de chemin" color="#99ff66" meeting="false" start="2018-06-08" duration="14" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+        <task id="13" name="Algorithmique" meeting="false" start="2018-06-08" duration="13" complete="0" expand="true">
+            <task id="14" name="Découverte de chemin" color="#99ff66" meeting="false" start="2018-06-08" duration="13" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
         </task>
-        <task id="9" name="Réseau" meeting="false" start="2018-06-08" duration="10" complete="0" expand="true">
-            <task id="10" name="Liaison radio" color="#66ff99" meeting="false" start="2018-06-08" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
+        <task id="9" name="Réseau" meeting="false" start="2018-06-12" duration="10" complete="0" expand="true">
+            <task id="10" name="Liaison radio" color="#66ff99" meeting="false" start="2018-06-12" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
                 <depend id="11" type="2" difference="0" hardness="Strong"/>
             </task>
-            <task id="11" name="Communication" color="#66ffcc" meeting="false" start="2018-06-14" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
-            <task id="12" name="Protocole" color="#66ccff" meeting="false" start="2018-06-08" duration="10" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="11" name="Communication" color="#66ffcc" meeting="false" start="2018-06-18" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="12" name="Protocole" color="#66ccff" meeting="false" start="2018-06-12" duration="10" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
         </task>
-        <task id="15" name="Programmation" meeting="false" start="2018-06-08" duration="8" complete="0" expand="true">
-            <task id="16" name="Interface de contrôle" color="#6699ff" meeting="false" start="2018-06-08" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
+        <task id="15" name="Programmation" meeting="false" start="2018-06-08" duration="13" complete="0" expand="true">
+            <task id="16" name="Interface de contrôle" color="#6699ff" meeting="false" start="2018-06-12" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
                 <depend id="17" type="2" difference="0" hardness="Strong"/>
             </task>
-            <task id="17" name="Interface de modélisation 2D" color="#6666ff" meeting="false" start="2018-06-14" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
-            <task id="18" name="Application" color="#3333ff" meeting="false" start="2018-06-08" duration="1" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
-            <task id="53" name="Stockage des données" color="#9966ff" meeting="false" start="2018-06-08" duration="1" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
-            <task id="22" name="Modèle collaboratif" color="#cc66ff" meeting="false" start="2018-06-08" duration="1" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
-            <task id="23" name="Réplication et expansion" color="#ff66ff" meeting="false" start="2018-06-08" duration="1" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="17" name="Interface de modélisation 2D" color="#6666ff" meeting="false" start="2018-06-18" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="18" name="Application" color="#3333ff" meeting="false" start="2018-06-08" duration="13" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="53" name="Stockage des données" color="#9966ff" meeting="false" start="2018-06-08" duration="13" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="22" name="Modèle collaboratif" color="#cc66ff" meeting="false" start="2018-06-08" duration="13" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="23" name="Réplication et expansion" color="#ff66ff" meeting="false" start="2018-06-08" duration="13" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
         </task>
     </tasks>
     <resources/>
@@ -79,4 +84,11 @@
     <previous/>
     <roles roleset-name="Default"/>
     <roles roleset-name="SoftwareDevelopment"/>
+    <roles>
+        <role id="1" name="Chef de projet"/>
+        <role id="2" name="Calculateur"/>
+        <role id="3" name="Responsable du matériel"/>
+        <role id="4" name="Gestionnaire réseau"/>
+        <role id="5" name="Développeur"/>
+    </roles>
 </project>
