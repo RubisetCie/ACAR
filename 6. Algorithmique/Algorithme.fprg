@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<flowgorithm fileversion="2.6">
+    <attributes>
+        <attribute name="name" value=""/>
+        <attribute name="authors" value="elvira raphaelle"/>
+        <attribute name="about" value=""/>
+        <attribute name="saved" value="2018-06-11 02:22:50 "/>
+        <attribute name="created" value="ZWx2aXJhIHJhcGhhZWxsZTsgTEFQVE9QLUxDUjFLOFRIOyAyMDE4LTA2LTExOyAwMToyMToyNiA7IDM5MDE="/>
+        <attribute name="edited" value="ZWx2aXJhIHJhcGhhZWxsZTsgTEFQVE9QLUxDUjFLOFRIOyAyMDE4LTA2LTExOyAwMjoyMjo1MCA7IDM5MDA="/>
+    </attributes>
+    <function name="Main" type="None" variable="">
+        <parameters/>
+        <body>
+            <assign variable="Direction" expression="Directionrobot"/>
+            <assign variable="Avancer" expression="Avancerrobot"/>
+            <assign variable="Droit" expression="RobotDroit"/>
+            <assign variable="Gauche" expression="RobotlGauche"/>
+            <assign variable="Obstacle" expression="ObstacleRobot"/>
+            <assign variable="Calcule" expression="CalculeDeDirection"/>
+            <if expression="robot = obstacle">
+                <then>
+                    <assign variable="Changer" expression="ChangerDirection"/>
+                    <if expression="Robot = Droit&amp;Gauche">
+                        <then>
+                            <assign variable="Tourner" expression="Droite"/>
+                            <assign variable="Tourner" expression="Gauche"/>
+                        </then>
+                        <else>
+                            <assign variable="ContinueDeRouler" expression="ContinueDeRouler"/>
+                        </else>
+                    </if>
+                </then>
+                <else>
+                    <assign variable="ContinueDeRouler" expression="ContinueDeRouler"/>
+                </else>
+            </if>
+            <assign variable="RobotArret" expression="RobotArret"/>
+        </body>
+    </function>
+</flowgorithm>
