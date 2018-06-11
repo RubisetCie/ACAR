@@ -4,9 +4,9 @@
         <attribute name="name" value=""/>
         <attribute name="authors" value="rubisetcie"/>
         <attribute name="about" value=""/>
-        <attribute name="saved" value="2018-06-11 01:17:52 "/>
+        <attribute name="saved" value="2018-06-11 03:39:09 "/>
         <attribute name="created" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMTsiMDE6MDM6MTAgIjszMjk5"/>
-        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMTsiMDE6MTc6NTIgIjs1OzM0MjI="/>
+        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMTsiMDM6Mzk6MDkgIjs3OzM0MzI="/>
     </attributes>
     <function name="Main" type="None" variable="">
         <parameters/>
@@ -19,21 +19,15 @@
             <declare name="B" type="Boolean" array="False" size=""/>
             <declare name="C" type="Boolean" array="False" size=""/>
             <declare name="D" type="Boolean" array="False" size=""/>
-            <comment text="Initialisation de l'&#233;tat des capteurs :"/>
-            <assign variable="A" expression="false"/>
-            <assign variable="B" expression="false"/>
-            <assign variable="C" expression="false"/>
-            <assign variable="D" expression="false"/>
-            <comment text="Correction de la trajectoire en fonction des capteurs"/>
             <if expression="(A or B) and not (C or D)">
                 <then>
-                    <comment text="On applique une correction vers la droite :"/>
+                    <comment text="Correction vers la droite :"/>
                     <call expression="TourneDroite(CORRECTIONDELTA)"/>
                 </then>
                 <else>
                     <if expression="(C or D) and not (A or B)">
                         <then>
-                            <comment text="On applique une correction vers la gauche :"/>
+                            <comment text="Correction vers la gauche :"/>
                             <call expression="TourneGauche(CORRECTIONDELTA)"/>
                         </then>
                         <else/>

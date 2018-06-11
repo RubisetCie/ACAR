@@ -49,10 +49,10 @@ Il consiste en la création d'un véhicule automatisé capable d'analyser son en
             <depend id="6" type="2" difference="0" hardness="Strong"/>
             <depend id="9" type="2" difference="0" hardness="Strong"/>
         </task>
-        <task id="4" name="Montage prototype" color="#ffcc33" meeting="false" start="2018-06-12" duration="2" complete="76" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+        <task id="4" name="Montage prototype" color="#ffcc33" meeting="false" start="2018-06-12" duration="2" complete="90" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
         <task id="5" name="Mesures physiques" color="#ffff99" meeting="false" start="2018-06-12" duration="2" complete="0" thirdDate="2018-06-18" thirdDate-constraint="0" expand="true"/>
-        <task id="6" name="Capteurs" meeting="false" start="2018-06-12" duration="6" complete="8" expand="true">
-            <task id="7" name="Suiveur de ligne" color="#ffff33" meeting="false" start="2018-06-12" duration="2" complete="21" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
+        <task id="6" name="Capteurs" meeting="false" start="2018-06-12" duration="6" complete="21" expand="true">
+            <task id="7" name="Suiveur de ligne" color="#ffff33" meeting="false" start="2018-06-12" duration="2" complete="60" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
                 <depend id="8" type="2" difference="0" hardness="Strong"/>
             </task>
             <task id="8" name="Distances et vitesse" color="#ccff66" meeting="false" start="2018-06-14" duration="4" complete="2" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
