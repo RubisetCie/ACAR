@@ -4,9 +4,9 @@
         <attribute name="name" value=""/>
         <attribute name="authors" value="rubisetcie"/>
         <attribute name="about" value=""/>
-        <attribute name="saved" value="2018-06-11 03:39:09 "/>
+        <attribute name="saved" value="2018-06-12 11:17:25 "/>
         <attribute name="created" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMTsiMDE6MDM6MTAgIjszMjk5"/>
-        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMTsiMDM6Mzk6MDkgIjs3OzM0MzI="/>
+        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMjsiMTE6MTc6MjUgIjsxMDszNDY4"/>
     </attributes>
     <function name="Main" type="None" variable="">
         <parameters/>
@@ -19,6 +19,8 @@
             <declare name="B" type="Boolean" array="False" size=""/>
             <declare name="C" type="Boolean" array="False" size=""/>
             <declare name="D" type="Boolean" array="False" size=""/>
+            <comment text="Lecture des capteurs :"/>
+            <call expression="LectureCapteur()"/>
             <if expression="(A or B) and not (C or D)">
                 <then>
                     <comment text="Correction vers la droite :"/>
