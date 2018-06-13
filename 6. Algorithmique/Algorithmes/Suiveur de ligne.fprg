@@ -4,9 +4,9 @@
         <attribute name="name" value=""/>
         <attribute name="authors" value="rubisetcie"/>
         <attribute name="about" value=""/>
-        <attribute name="saved" value="2018-06-12 11:17:25 "/>
+        <attribute name="saved" value="2018-06-13 09:55:48 "/>
         <attribute name="created" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMTsiMDE6MDM6MTAgIjszMjk5"/>
-        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMjsiMTE6MTc6MjUgIjsxMDszNDY4"/>
+        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMzsiMDk6NTU6NDggIjsxNjszNDg5"/>
     </attributes>
     <function name="Main" type="None" variable="">
         <parameters/>
@@ -14,28 +14,44 @@
             <comment text="D&#233;claration de la constante de correction en degr&#233;s :"/>
             <declare name="CORRECTIONDELTA" type="Real" array="False" size=""/>
             <assign variable="CORRECTIONDELTA" expression="5.0"/>
-            <comment text="D&#233;claration des variables des capteurs :"/>
+            <comment text="D&#233;claration des variables des&#13;&#10;capteurs :"/>
             <declare name="A" type="Boolean" array="False" size=""/>
             <declare name="B" type="Boolean" array="False" size=""/>
             <declare name="C" type="Boolean" array="False" size=""/>
             <declare name="D" type="Boolean" array="False" size=""/>
-            <comment text="Lecture des capteurs :"/>
-            <call expression="LectureCapteur()"/>
-            <if expression="(A or B) and not (C or D)">
-                <then>
-                    <comment text="Correction vers la droite :"/>
-                    <call expression="TourneDroite(CORRECTIONDELTA)"/>
-                </then>
-                <else>
-                    <if expression="(C or D) and not (A or B)">
-                        <then>
-                            <comment text="Correction vers la gauche :"/>
-                            <call expression="TourneGauche(CORRECTIONDELTA)"/>
-                        </then>
-                        <else/>
-                    </if>
-                </else>
-            </if>
+            <comment text="D&#233;claration de la variable li&#233;es aux points :"/>
+            <declare name="Point" type="Integer" array="False" size=""/>
+            <declare name="Destination" type="Integer" array="False" size=""/>
+            <comment text="Boucle de fonctionnement :"/>
+            <while expression="">
+                <comment text="Lecture des capteurs :"/>
+                <call expression="LectureCapteur()"/>
+                <if expression="B">
+                    <then>
+                        <comment text="Correction vers la droite :"/>
+                        <call expression="TourneDroite(CORRECTIONDELTA)"/>
+                    </then>
+                    <else>
+                        <if expression="C">
+                            <then>
+                                <comment text="Correction vers la gauche :"/>
+                                <call expression="TourneGauche(CORRECTIONDELTA)"/>
+                            </then>
+                            <else>
+                                <if expression="A or D">
+                                    <then>
+                                        <comment text="On signale l'arriv&#233;e &#224; destination :"/>
+                                        <assign variable="Point" expression="Destination"/>
+                                        <comment text="On se dirige vers le point suivant :"/>
+                                        <call expression="PointSuivant()"/>
+                                    </then>
+                                    <else/>
+                                </if>
+                            </else>
+                        </if>
+                    </else>
+                </if>
+            </while>
         </body>
     </function>
 </flowgorithm>
