@@ -9,17 +9,17 @@
 // Déclaration des constantes :
 #define I2C_ADDRESS 0x0f
 
-#define AV_MAX 100    // La vitesse maximale des moteurs en avant
-#define AV_MIN 50     // La vitesse minimale des moteurs en avant
-#define AR_MAX -100   // La vitesse maximale des moteurs en arrière
-#define AR_MIN -50    // La vitesse minimale des moteurs en arrière
+#define AV_MAX -100   // La vitesse maximale des moteurs en avant (négative)
+#define AV_MIN -70    // La vitesse minimale des moteurs en avant (négative)
+#define AR_MAX 100    // La vitesse maximale des moteurs en arrière (positive)
+#define AR_MIN 70     // La vitesse minimale des moteurs en arrière (positive)
 
-#define CPT_A 3       // Le PIN correspondant au capteur A
-#define CPT_B 4       // Le PIN correspondant au capteur B
-#define CPT_C 5       // Le PIN correspondant au capteur C
+#define CPT_A 5       // Le PIN correspondant au capteur A
+#define CPT_B 2       // Le PIN correspondant au capteur B
+#define CPT_C 3       // Le PIN correspondant au capteur C
 #define CPT_D 6       // Le PIN correspondant au capteur D
 
-#define SEUIL_COR 150 // Le seuil de correction de trajectoire
+#define SEUIL_COR 250 // Le seuil de correction de trajectoire
 #define SEUIL_DET 20  // Le seuil de détection du capteur de distance
 
 // Déclaration de la structure "Point" représentant un point en 2D :
@@ -27,7 +27,7 @@ struct Point
 {
   int x;
   int y;
-}
+};
 
 // Déclaration des variables :
 Point points[12];     // Les points atteignables et leur coordonnées
@@ -64,7 +64,7 @@ void loop()
 }
 
 // Fonction "lectureCapteurs" permet de lire l'état des capteurs :
-void lectureCapteurs(const boolean& A, const boolean& B, const boolean& C, const boolean& D)
+void lectureCapteurs(boolean& A, boolean& B, boolean& C, boolean& D)
 {
   A = digitalRead(CPT_A);
   B = digitalRead(CPT_B);
@@ -75,23 +75,23 @@ void lectureCapteurs(const boolean& A, const boolean& B, const boolean& C, const
 // Fonction "avance" permet de se déplacer tout droit :
 void avance()
 {
-  Motor.speed(MOTOR1, AV_MAX);
-  Motor.speed(MOTOR2, AV_MAX); 
+  Motor.speed(MOTOR1, AV_MIN);
+  Motor.speed(MOTOR2, AV_MIN); 
 }
 
 // Fonction "recule" permet de se déplacer en marche-arrière :
 void recule()
 {
-  Motor.speed(MOTOR1, AR_MAX);
-  Motor.speed(MOTOR2, AR_MAX); 
+  Motor.speed(MOTOR1, AR_MIN);
+  Motor.speed(MOTOR2, AR_MIN); 
 }
 
 // Fonction "tourneDroite" permet de tourner d'un certain angle vers la droite :
 void tourneDroite(unsigned int del)
 {
-  // On règle les vitesses des moteurs :
-  Motor.speed(MOTOR1, 0);
-  Motor.speed(MOTOR2, AV_MAX);
+  // On inverse les vitesses des moteurs :
+  Motor.speed(MOTOR1, AV_MAX);
+  Motor.speed(MOTOR2, AR_MAX);
   
   // On avance de nouveau après le délai :
   delay(del);
@@ -101,9 +101,9 @@ void tourneDroite(unsigned int del)
 // Fonction "tourneGauche" permet de tourner d'un certain angle vers la gauche :
 void tourneGauche(unsigned int del)
 {
-  // On règle les vitesses des moteurs :
-  Motor.speed(MOTOR1, AV_MAX);
-  Motor.speed(MOTOR2, 0);
+  // On inverse les vitesses des moteurs :
+  Motor.speed(MOTOR1, AR_MAX);
+  Motor.speed(MOTOR2, AV_MAX);
 
   // On avance de nouveau après le délai :
   delay(del);
