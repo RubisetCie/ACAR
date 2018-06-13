@@ -29,10 +29,15 @@ struct Point
   int y;
 
   int heuristique;
+
+  // Constructeur :
+  Point(int x, int y, int h) : x(x), y(y), heuristique(h)
+  {
+  }
 };
 
 // Déclaration des variables :
-Point points[12];     // Les points atteignables et leur coordonnées
+Point* points[12];     // Les points atteignables et leur coordonnées
 
 Point* pointCourant;  // Pointeur vers le point sur lequel le robot se trouve
 Point* pointDest;     // Pointeur vers le point sur lequel le robot doit aller
@@ -100,7 +105,7 @@ void arrete()
 }
 
 // Fonction "tourneDroite" permet de tourner d'un certain angle vers la droite :
-void tourneDroite(unsigned int del)
+void tourneDroite(unsigned long del)
 {
   // On inverse les vitesses des moteurs :
   Motor.speed(MOTOR1, AV_MAX);
@@ -112,7 +117,7 @@ void tourneDroite(unsigned int del)
 }
 
 // Fonction "tourneGauche" permet de tourner d'un certain angle vers la gauche :
-void tourneGauche(unsigned int del)
+void tourneGauche(unsigned long del)
 {
   // On inverse les vitesses des moteurs :
   Motor.speed(MOTOR1, AR_MAX);
@@ -126,6 +131,19 @@ void tourneGauche(unsigned int del)
 // Fonction "preparerCarte" permet de charger la carte dans la mémoire :
 void preparerCarte()
 {
+  points[0]  = new Point(0, 0, 0);
+  points[1]  = new Point(-1, 0, 0);
+  points[2]  = new Point(-2, 0, 0);
+  points[3]  = new Point(-2, 1, 0);
+  points[4]  = new Point(-2, 2, 0);
+  points[5]  = new Point(-1, 2, 0);
+  points[6]  = new Point(-1, 1, 0);
+  points[7]  = new Point(1, 2, 0);
+  points[8]  = new Point(1, 1, 0);
+  points[9]  = new Point(2, 2, 0);
+  points[10] = new Point(2, 1, 0);
+  points[11] = new Point(2, 0, 0);
+  points[12] = new Point(1, 0, 0);
 }
 
 // Fonction "pointSuivant" permet de se diriger vers le prochain point :
