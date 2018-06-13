@@ -22,13 +22,13 @@
 #define SEUIL_COR 250 // Le seuil de correction de trajectoire
 #define SEUIL_DET 20  // Le seuil de détection du capteur de distance
 
-// Déclaration de la structure "Point" représentant un point en 2D :
-struct Point
+// Déclaration de la classe "Point" représentant un point en 2D :
+class Point
 {
-  int x;
-  int y;
+  public int x;
+  public int y;
 
-  int heuristique;
+  public int heuristique;
 
   // Constructeur :
   Point(int x, int y, int h) : x(x), y(y), heuristique(h)
@@ -37,7 +37,7 @@ struct Point
 };
 
 // Déclaration des variables :
-Point* points[12];     // Les points atteignables et leur coordonnées
+Point* points[12];    // Les points atteignables et leur coordonnées
 
 Point* pointCourant;  // Pointeur vers le point sur lequel le robot se trouve
 Point* pointDest;     // Pointeur vers le point sur lequel le robot doit aller
@@ -48,9 +48,6 @@ void setup()
   // On initialise les moteurs :
   Motor.begin(I2C_ADDRESS);
   //Serial.begin(9600);
-
-  // On commence à avancer :
-  avance();
 }
 
 // Fonction "loop" exécutée continuellement :
@@ -66,11 +63,13 @@ void loop()
   lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D);
   
   // On corrige la trajectoire si les capteurs B ou C détectent du noir :
-  if (cpt_B == HIGH && cpt_C == LOW)
-    tourneDroite(SEUIL_COR);
+  if (cpt_B == LOW && cpt_C == LOW)
+    avance();
+  else if (cpt_B == HIGH && cpt_C == LOW)
+    tourneDroite();
   else if (cpt_C == HIGH && cpt_B == LOW)
-    tourneGauche(SEUIL_COR);
-  else if (cpt_B == HIGH && cpt_C == HIGH)
+    tourneGauche();
+  else
     arrete();
 }
 
@@ -105,27 +104,19 @@ void arrete()
 }
 
 // Fonction "tourneDroite" permet de tourner d'un certain angle vers la droite :
-void tourneDroite(unsigned long del)
+void tourneDroite()
 {
   // On inverse les vitesses des moteurs :
   Motor.speed(MOTOR1, AV_MAX);
   Motor.speed(MOTOR2, AR_MAX);
-  
-  // On avance de nouveau après le délai :
-  delay(del);
-  avance();
 }
 
 // Fonction "tourneGauche" permet de tourner d'un certain angle vers la gauche :
-void tourneGauche(unsigned long del)
+void tourneGauche()
 {
   // On inverse les vitesses des moteurs :
   Motor.speed(MOTOR1, AR_MAX);
   Motor.speed(MOTOR2, AV_MAX);
-
-  // On avance de nouveau après le délai :
-  delay(del);
-  avance();
 }
 
 // Fonction "preparerCarte" permet de charger la carte dans la mémoire :
