@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="debug/Astar" prefix_auto="1" extension_auto="1" />
+				<Option output="Astard" prefix_auto="1" extension_auto="1" />
 				<Option object_output="debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -16,7 +16,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="release/Astar" prefix_auto="1" extension_auto="1" />
+				<Option output="Astar" prefix_auto="1" extension_auto="1" />
 				<Option object_output="release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />

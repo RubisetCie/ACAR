@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstdio>
+#include <cmath>
 
 // Le point :
 struct Point
@@ -7,30 +8,35 @@ struct Point
     // Constructeur :
     Point(int n, int x, int y) : num(n), x(x), y(y)
     {
-        acces[0] = NULL;
-        acces[1] = NULL;
-        acces[2] = NULL;
+        arete[0] = NULL;
+        arete[1] = NULL;
+        arete[2] = NULL;
+        arete[3] = NULL;
     }
 
-    Point* acces[3];
+    Point* arete[4];
     Point* parent;
+
+    float heuristique;
 
     unsigned int num;
 
     int x;
     int y;
+
+    bool verifie;
 };
 
-Point* points[13];
+Point* graphe[13];
 Point* chemin[13];
 unsigned int cheminS;
 
 void prepareCarte();
-void preparePoints();
+void prepareDonnees();
 void libereCarte();
 
-void trouverChemin(Point* start, Point* target);
-void construireChemin(Point* start, Point* pt);
+bool trouverChemin(Point* depart, Point* destination);
+void construireChemin(Point* depart, Point* pt);
 
 int main()
 {
@@ -47,11 +53,11 @@ int main()
     scanf("%u", &e);
 
     // On lance la recherche de chemin :
-    trouverChemin(points[s], points[e]);
+    trouverChemin(graphe[s], graphe[e]);
 
     // On affiche le chemin :
     printf("\nLe chemin pour y acceder est :\n");
-    printf("1 - Pt %d\n", points[s]->num);
+    printf("1 - Pt %d\n", graphe[s]->num);
 
     for (register unsigned int i = 0; i < cheminS; i++)
         printf("%d - Pt %d\n", i + 2, chemin[i]->num);
@@ -65,128 +71,148 @@ int main()
 void prepareCarte()
 {
     // Remplit la carte des points :
-    points[0]  = new Point(0, 0, 0);
-    points[1]  = new Point(1, -1, 0);
-    points[2]  = new Point(2, -2, 0);
-    points[3]  = new Point(3, -2, 1);
-    points[4]  = new Point(4, -2, 2);
-    points[5]  = new Point(5, -1, 2);
-    points[6]  = new Point(6, -1, 1);
-    points[7]  = new Point(7, 1, 2);
-    points[8]  = new Point(8, 1, 1);
-    points[9]  = new Point(9, 2, 2);
-    points[10] = new Point(10, 2, 1);
-    points[11] = new Point(11, 2, 0);
-    points[12] = new Point(12, 1, 0);
+    graphe[0]  = new Point(0, 0, 0);
+    graphe[1]  = new Point(1, -1, 0);
+    graphe[2]  = new Point(2, -2, 0);
+    graphe[3]  = new Point(3, -2, 1);
+    graphe[4]  = new Point(4, -2, 2);
+    graphe[5]  = new Point(5, -1, 2);
+    graphe[6]  = new Point(6, -1, 1);
+    graphe[7]  = new Point(7, 1, 2);
+    graphe[8]  = new Point(8, 1, 1);
+    graphe[9]  = new Point(9, 2, 2);
+    graphe[10] = new Point(10, 2, 1);
+    graphe[11] = new Point(11, 2, 0);
+    graphe[12] = new Point(12, 1, 0);
 
-    // Créé les accès entre les points :
-    points[0]->acces[0] = points[1];
-    points[0]->acces[1] = points[12];
+    // Créé les accès entre les graphe :
+    graphe[0]->arete[0] = graphe[1];
+    graphe[0]->arete[1] = graphe[12];
 
-    points[1]->acces[0] = points[2];
-    points[1]->acces[1] = points[6];
+    graphe[1]->arete[0] = graphe[2];
+    graphe[1]->arete[1] = graphe[6];
+    graphe[1]->arete[2] = graphe[12];
 
-    points[2]->acces[0] = points[3];
+    graphe[2]->arete[0] = graphe[1];
+    graphe[2]->arete[1] = graphe[3];
 
-    points[3]->acces[0] = points[4];
-    points[3]->acces[1] = points[6];
+    graphe[3]->arete[0] = graphe[2];
+    graphe[3]->arete[1] = graphe[4];
+    graphe[3]->arete[2] = graphe[6];
 
-    points[4]->acces[0] = points[5];
+    graphe[4]->arete[0] = graphe[3];
+    graphe[4]->arete[1] = graphe[5];
 
-    points[5]->acces[0] = points[6];
-    points[5]->acces[1] = points[7];
+    graphe[5]->arete[0] = graphe[4];
+    graphe[5]->arete[1] = graphe[6];
+    graphe[5]->arete[2] = graphe[7];
 
-    points[6]->acces[0] = points[1];
-    points[6]->acces[1] = points[5];
-    points[6]->acces[2] = points[8];
+    graphe[6]->arete[0] = graphe[1];
+    graphe[6]->arete[1] = graphe[3];
+    graphe[6]->arete[2] = graphe[5];
+    graphe[6]->arete[3] = graphe[8];
 
-    points[7]->acces[0] = points[8];
-    points[7]->acces[1] = points[9];
+    graphe[7]->arete[0] = graphe[5];
+    graphe[7]->arete[1] = graphe[8];
+    graphe[7]->arete[2] = graphe[9];
 
-    points[8]->acces[0] = points[7];
-    points[8]->acces[1] = points[10];
-    points[8]->acces[2] = points[12];
+    graphe[8]->arete[0] = graphe[6];
+    graphe[8]->arete[1] = graphe[7];
+    graphe[8]->arete[2] = graphe[10];
+    graphe[8]->arete[3] = graphe[12];
 
-    points[9]->acces[0] = points[10];
+    graphe[9]->arete[0] = graphe[7];
+    graphe[9]->arete[1] = graphe[10];
 
-    points[10]->acces[0] = points[8];
-    points[10]->acces[1] = points[11];
+    graphe[10]->arete[0] = graphe[8];
+    graphe[10]->arete[1] = graphe[9];
+    graphe[10]->arete[2] = graphe[11];
 
-    points[11]->acces[0] = points[12];
+    graphe[11]->arete[0] = graphe[10];
+    graphe[11]->arete[1] = graphe[12];
 
-    points[12]->acces[0] = points[1];
+    graphe[12]->arete[0] = graphe[1];
+    graphe[12]->arete[1] = graphe[11];
 }
 
-void preparePoints()
+void prepareDonnees()
 {
-    // On vide les parents :
-    for (register unsigned int i = 0; i < 12; i++)
-        points[i]->parent = NULL;
+    // On vide les données avant découverte de chemin :
+    for (register unsigned int i = 0; i < 13; i++)
+    {
+        graphe[i]->parent = NULL;
+        graphe[i]->heuristique = 0.0f;
+        graphe[i]->verifie = false;
+    }
 }
 
 void libereCarte()
 {
-    // Libère les points :
-    for (register unsigned int i = 0; i < 12; i++)
-        delete points[i];
+    // Libère les graphe :
+    for (register unsigned int i = 0; i < 13; i++)
+        delete graphe[i];
 }
 
-void trouverChemin(Point* start, Point* target)
+bool trouverChemin(Point* depart, Point* destination)
 {
     // On déclare les variables locales :
-    Point* ferme[12];     // Points vérifiés
-    Point* ouvert[12];    // Points à vérifier
+    Point* verif[12];       // graphe à vérifier
 
-    Point* courant;       // Le point étudié en cours
-    Point* accessible;    // Le point accessible par le point courant
+    Point* courant;         // Le point étudié en cours
+    Point* accessible;      // Le point accessible par le point courant
 
-    unsigned int fermeS = 0;
-    unsigned int ouvertS = 1;
+    unsigned int taille = 1;
     unsigned int lecteur = 0;
+    float distance;
 
+    // Variables temporaires :
     bool dedans;
-
-    register unsigned int i;
-    register unsigned int j;
+    unsigned int x, y;
+    register unsigned int i, j;
 
     // On ajoute le point de départ :
-    ouvert[0] = start;
+    verif[0] = depart;
 
     // On prépare les données :
-    preparePoints();
+    prepareDonnees();
 
-    // Tant que la liste des points ouvert n'est pas vide :
-    while (ouvertS > 0)
+    // Tant que la liste des graphe ouvert n'est pas vide :
+    while (taille > 0)
     {
         // On récupère le dernier point :
-        courant = ouvert[lecteur];
+        courant = verif[lecteur];
         lecteur++;
 
         // Si le point en cours est l'arrivée, on arrête la recherche :
-        if (courant == target)
+        if (courant == destination)
         {
-            construireChemin(start, courant);
-            break;
+            construireChemin(depart, courant);
+            return true;
         }
 
+        // On calcule l'heuristique (distance entre le point courant et la destination) :
+        x = (courant->x - destination->x);
+        y = (courant->y - destination->y);
+        distance = sqrt(x * x + y * y);
+
         // On teste tout les accessibles :
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 4; i++)
         {
             // On récupère le point accessible :
-            accessible = courant->acces[i];
+            accessible = courant->arete[i];
 
             if (accessible == NULL)
                 break;
 
-            // On vérifie si le point ne se trouve pas déjà dans la liste "fermé" :
-            dedans = false;
-            for (j = 0; j < fermeS; j++)
-            {
-                if (ferme[j] == accessible)
-                    dedans = true;
-            }
+            // On vérifie si le point a été vérifié :
+            if (accessible->verifie)
+                continue;
 
-            if (dedans)
+            // On compare les distances pour éviter les détours importants :
+            x = (accessible->x - destination->x);
+            y = (accessible->y - destination->y);
+
+            if (distance <= sqrt(x * x + y * y))
                 continue;
 
             // On configure le parent pour la reconstruction du chemin :
@@ -194,35 +220,34 @@ void trouverChemin(Point* start, Point* target)
 
             // On vérifie si le point ne se trouve pas déjà dans la liste "ouvert" :
             dedans = false;
-            for (j = 0; j < ouvertS; j++)
+            for (j = 0; j < taille; j++)
             {
-                if (ouvert[j] == accessible)
+                if (verif[j] == accessible)
                     dedans = true;
             }
 
             // On ajoute le point dans la liste "ouvert" :
             if (!dedans)
             {
-                ouvert[ouvertS] = accessible;
-                ouvertS++;
-
-                //printf("+ : %u\n", ouvertS);
+                verif[taille] = accessible;
+                taille++;
             }
         }
 
-        // On ajoute le point dans la liste "fermé" :
-        ferme[fermeS] = courant;
-        fermeS++;
+        // On marque le point comme vérifié :
+        courant->verifie = true;
     }
+
+    return false;
 }
 
 void construireChemin(Point* start, Point* pt)
 {
     // Tableau temporaire stockant le chemin dans le sens inverse :
-    Point* temp[12];
+    Point* temp[13];
     cheminS = 0;
 
-    // On construit le chemin à partir des points parents :
+    // On construit le chemin à partir des graphe parents :
     do
     {
         temp[cheminS] = pt;
