@@ -1,6 +1,6 @@
 /*  Auteur      : Matthieu Carteron
     Langage     : Arduino
-    Description : Le fichier principal permettant de contrôler le robot
+    Description : Le fichier principal permettant de diriger le robot
 */
 
 // Inclusion de la librairie :
@@ -10,7 +10,7 @@
 #define I2C_ADDRESS 0x0f
 
 #define NB_S 13       // Le nombre de sommets du graphe
-#define NB_A 13       // Le nombre maximum d'arêtes par sommets
+#define NB_A 4        // Le nombre maximum d'arêtes par sommets
 
 #define AV_MAX -100   // La vitesse maximale des moteurs en avant (négative)
 #define AV_MIN -70    // La vitesse minimale des moteurs en avant (négative)
