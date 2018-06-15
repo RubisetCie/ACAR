@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1528974279 source:d:\jeux\creations\c++\other\astar\main.cpp
+	<cstdlib>
+	<cstdio>
+
+1528914557 source:d:\jeux\creation\c++\other\astar\main.cpp
+	<cstdlib>
+	<cstdio>
+

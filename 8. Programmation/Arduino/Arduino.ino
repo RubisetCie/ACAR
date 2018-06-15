@@ -25,15 +25,19 @@
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
 {
-  public int x;
-  public int y;
+  public :
+    int x;            // Position X du point
+    int y;            // Position Y du point
 
-  public int heuristique;
+    Point* acces[3];
 
-  // Constructeur :
-  Point(int x, int y, int h) : x(x), y(y), heuristique(h)
-  {
-  }
+    // Constructeur :
+    Point(int x, int y) : x(x), y(y)
+    {
+      acces[0] = NULL;
+      acces[1] = NULL;
+      acces[2] = NULL;
+    }
 };
 
 // Déclaration des variables :
@@ -48,6 +52,9 @@ void setup()
   // On initialise les moteurs :
   Motor.begin(I2C_ADDRESS);
   //Serial.begin(9600);
+
+  // On charge la carte :
+  prepareCarte();
 }
 
 // Fonction "loop" exécutée continuellement :
@@ -120,36 +127,145 @@ void tourneGauche()
 }
 
 // Fonction "preparerCarte" permet de charger la carte dans la mémoire :
-void preparerCarte()
+void prepareCarte()
 {
-  points[0]  = new Point(0, 0, 0);
-  points[1]  = new Point(-1, 0, 0);
-  points[2]  = new Point(-2, 0, 0);
-  points[3]  = new Point(-2, 1, 0);
-  points[4]  = new Point(-2, 2, 0);
-  points[5]  = new Point(-1, 2, 0);
-  points[6]  = new Point(-1, 1, 0);
-  points[7]  = new Point(1, 2, 0);
-  points[8]  = new Point(1, 1, 0);
-  points[9]  = new Point(2, 2, 0);
-  points[10] = new Point(2, 1, 0);
-  points[11] = new Point(2, 0, 0);
-  points[12] = new Point(1, 0, 0);
+  // Remplit la carte des points :
+  points[0]  = new Point(0, 0);
+  points[1]  = new Point(-1, 0);
+  points[2]  = new Point(-2, 0);
+  points[3]  = new Point(-2, 1);
+  points[4]  = new Point(-2, 2);
+  points[5]  = new Point(-1, 2);
+  points[6]  = new Point(-1, 1);
+  points[7]  = new Point(1, 2);
+  points[8]  = new Point(1, 1);
+  points[9]  = new Point(2, 2);
+  points[10] = new Point(2, 1);
+  points[11] = new Point(2, 0);
+  points[12] = new Point(1, 0);
+
+  // Créé les accès entre les points :
+  points[1]->acces[0] = points[2];
+  points[1]->acces[1] = points[6];
+
+  points[2]->acces[0] = points[3];
+  
+  points[3]->acces[0] = points[4];
+  points[3]->acces[1] = points[6];
+
+  points[4]->acces[0] = points[5];
+
+  points[5]->acces[0] = points[6];
+  points[5]->acces[1] = points[7];
+
+  points[6]->acces[0] = points[1];
+  points[6]->acces[1] = points[5];
+  points[6]->acces[2] = points[8];
+
+  points[7]->acces[0] = points[8];
+  points[7]->acces[1] = points[9];
+
+  points[8]->acces[0] = points[7];
+  points[8]->acces[1] = points[10];
+  points[8]->acces[2] = points[12];
+
+  points[9]->acces[0] = points[10];
+
+  points[10]->acces[0] = points[8];
+  points[10]->acces[1] = points[11];
+
+  points[11]->acces[0] = points[12];
+
+  points[12]->acces[0] = points[1];
 }
 
 // Fonction "pointSuivant" permet de se diriger vers le prochain point :
-void pointSuivant(unsigned int pt)
+void pointSuivant(const Point* pt)
 {
 }
 
-// Fonction "comparePoints" compare deux heuristiques de points différents :
-int comparePoints(const Point& pA, const Point& pB)
+// Fonction "trouverChemin" permet de trouver le chemin de "start" vers "target" :
+void trouverChemin(const Point* start, const Point* target)
 {
-  if (pA.heuristique < pB.heuristique)
-    return -1;
-  else if (pA.heuristique > pB.heuristique)
-    return 1;
-  else
-    return 0;
+  // On déclare les variables locales :
+  const Point* ferme[12];
+  const Point* ouvert[12];
+  const Point* chemin[12];
+  
+  const Point* courant;
+  const Point* accessible;
+  const Point* existant;
+
+  unsigned int fermeS = 0;
+  unsigned int ouvertS = 1;
+  unsigned int cheminS = 0;
+
+  register unsigned int i;
+  register unsigned int j;
+  
+  // On ajoute le point de départ :
+  ouvert[0] = start;
+
+  // Tant que la liste des points ouvert n'est pas vide :
+  while (ouvertS > 0)
+  {
+    // On récupère le dernier point :
+    courant = ouvert[ouvertS-1];
+
+    // On compare le point courant avec la destination :
+    if (courant == target)
+    {
+      //node_goal.parentNode = node_current.parentNode ;
+      break;
+    }
+
+    for (i = 0; i < 3; i++)
+    {
+      // On récupère le point accessible :
+      accessible = courant->acces[i];
+      
+      // On cherche si l'index du point successeur est dans la liste "ouvert" :
+      unsigned int indexO = -1;
+      for (j = 0; j < ouvertS; j++)
+      {
+        if (ouvert[j] == accessible)
+        {
+          indexO = j;
+          break;
+        }
+      }
+
+      // Si le successeur est dans la liste ouverte, on laisse celui-ci :
+      /*if (indexO > -1)
+      {
+        existant = ouvert[index];
+      }*/
+
+      // On cherche si l'index du point successeur est dans la liste "fermé" :
+      unsigned int indexF = -1;
+      for (j = 0; j < fermeS; j++)
+      {
+        if (ouvert[j] == accessible)
+        {
+          indexF = j;
+          break;
+        }
+      }
+
+      // On ajoute le point dans la liste "ouvert" :
+      ouvert[ouvertS-1] = accessible;
+      ouvertS++;
+    }
+
+    // On ajoute le point dans la liste "fermé" :
+    ferme[fermeS-1] = courant;
+    fermeS++;
+  }
+}
+
+// Fonction "trouverAccessibles" permet de récupérer les points accessibles à partir d'un autre :
+void trouverAccessibles(const Point** acc, const Point* pt)
+{
+  
 }
 
