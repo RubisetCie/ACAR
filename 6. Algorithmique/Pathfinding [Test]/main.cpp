@@ -6,7 +6,7 @@
 struct Point
 {
     // Constructeur :
-    Point(int n, int x, int y) : num(n), x(x), y(y)
+    Point(unsigned int n, unsigned int x, unsigned int y) : num(n), x(x), y(y)
     {
         arete[0] = NULL;
         arete[1] = NULL;
@@ -21,14 +21,14 @@ struct Point
 
     unsigned int num;
 
-    int x;
-    int y;
+    unsigned int x;
+    unsigned int y;
 
     bool verifie;
 };
 
-Point* graphe[13];
-Point* chemin[13];
+Point* graphe[16];
+Point* chemin[16];
 unsigned int cheminS;
 
 void prepareCarte();
@@ -53,11 +53,11 @@ int main()
     scanf("%u", &e);
 
     // On lance la recherche de chemin :
-    trouverChemin(graphe[s], graphe[e]);
+    trouverChemin(graphe[s-1], graphe[e-1]);
 
     // On affiche le chemin :
     printf("\nLe chemin pour y acceder est :\n");
-    printf("1 - Pt %d\n", graphe[s]->num);
+    printf("1 - Pt %d\n", graphe[s-1]->num);
 
     for (register unsigned int i = 0; i < cheminS; i++)
         printf("%d - Pt %d\n", i + 2, chemin[i]->num);
@@ -71,74 +71,87 @@ int main()
 void prepareCarte()
 {
     // Remplit la carte des points :
-    graphe[0]  = new Point(0, 0, 0);
-    graphe[1]  = new Point(1, -1, 0);
-    graphe[2]  = new Point(2, -2, 0);
-    graphe[3]  = new Point(3, -2, 1);
-    graphe[4]  = new Point(4, -2, 2);
-    graphe[5]  = new Point(5, -1, 2);
-    graphe[6]  = new Point(6, -1, 1);
-    graphe[7]  = new Point(7, 1, 2);
-    graphe[8]  = new Point(8, 1, 1);
-    graphe[9]  = new Point(9, 2, 2);
-    graphe[10] = new Point(10, 2, 1);
-    graphe[11] = new Point(11, 2, 0);
-    graphe[12] = new Point(12, 1, 0);
+    graphe[0]  = new Point(1, 0, 0);
+    graphe[1]  = new Point(2, 4, 0);
+    graphe[2]  = new Point(3, 0, 3);
+    graphe[3]  = new Point(4, 12, 0);
+    graphe[4]  = new Point(5, 4, 3);
+    graphe[5]  = new Point(6, 0, 7);
+    graphe[6]  = new Point(7, 15, 0);
+    graphe[7]  = new Point(8, 12, 3);
+    graphe[8]  = new Point(9, 15, 7);
+    graphe[9]  = new Point(10, 0, 12);
+    graphe[10] = new Point(11, 17, 0);
+    graphe[11] = new Point(12, 17, 7);
+    graphe[12] = new Point(13, 4, 12);
+    graphe[13] = new Point(14, 4, 9);
+    graphe[14] = new Point(15, 15, 12);
+    graphe[15] = new Point(16, 15, 9);
 
-    // Créé les accès entre les graphe :
+    // Créé les accès entre les points :
     graphe[0]->arete[0] = graphe[1];
-    graphe[0]->arete[1] = graphe[12];
+    graphe[0]->arete[1] = graphe[2];
 
-    graphe[1]->arete[0] = graphe[2];
-    graphe[1]->arete[1] = graphe[6];
-    graphe[1]->arete[2] = graphe[12];
+    graphe[1]->arete[0] = graphe[0];
+    graphe[1]->arete[1] = graphe[3];
+    graphe[1]->arete[2] = graphe[4];
 
-    graphe[2]->arete[0] = graphe[1];
-    graphe[2]->arete[1] = graphe[3];
+    graphe[2]->arete[0] = graphe[0];
+    graphe[2]->arete[1] = graphe[4];
+    graphe[2]->arete[2] = graphe[5];
 
-    graphe[3]->arete[0] = graphe[2];
-    graphe[3]->arete[1] = graphe[4];
-    graphe[3]->arete[2] = graphe[6];
+    graphe[3]->arete[0] = graphe[1];
+    graphe[3]->arete[1] = graphe[6];
+    graphe[3]->arete[2] = graphe[7];
 
-    graphe[4]->arete[0] = graphe[3];
-    graphe[4]->arete[1] = graphe[5];
+    graphe[4]->arete[0] = graphe[1];
+    graphe[4]->arete[1] = graphe[2];
+    graphe[4]->arete[2] = graphe[7];
 
-    graphe[5]->arete[0] = graphe[4];
-    graphe[5]->arete[1] = graphe[6];
-    graphe[5]->arete[2] = graphe[7];
+    graphe[5]->arete[0] = graphe[2];
+    graphe[5]->arete[1] = graphe[8];
+    graphe[5]->arete[2] = graphe[9];
 
-    graphe[6]->arete[0] = graphe[1];
-    graphe[6]->arete[1] = graphe[3];
-    graphe[6]->arete[2] = graphe[5];
-    graphe[6]->arete[3] = graphe[8];
+    graphe[6]->arete[0] = graphe[3];
+    graphe[6]->arete[1] = graphe[8];
+    graphe[6]->arete[2] = graphe[10];
 
-    graphe[7]->arete[0] = graphe[5];
-    graphe[7]->arete[1] = graphe[8];
-    graphe[7]->arete[2] = graphe[9];
+    graphe[7]->arete[0] = graphe[3];
+    graphe[7]->arete[1] = graphe[4];
 
-    graphe[8]->arete[0] = graphe[6];
-    graphe[8]->arete[1] = graphe[7];
-    graphe[8]->arete[2] = graphe[10];
-    graphe[8]->arete[3] = graphe[12];
+    graphe[8]->arete[0] = graphe[5];
+    graphe[8]->arete[1] = graphe[6];
+    graphe[8]->arete[2] = graphe[11];
+    graphe[8]->arete[3] = graphe[15];
 
-    graphe[9]->arete[0] = graphe[7];
-    graphe[9]->arete[1] = graphe[10];
+    graphe[9]->arete[0] = graphe[5];
+    graphe[9]->arete[1] = graphe[12];
 
-    graphe[10]->arete[0] = graphe[8];
-    graphe[10]->arete[1] = graphe[9];
-    graphe[10]->arete[2] = graphe[11];
+    graphe[10]->arete[0] = graphe[6];
+    graphe[10]->arete[1] = graphe[11];
 
-    graphe[11]->arete[0] = graphe[10];
-    graphe[11]->arete[1] = graphe[12];
+    graphe[11]->arete[0] = graphe[8];
+    graphe[11]->arete[1] = graphe[10];
+    graphe[12]->arete[2] = graphe[14];
 
-    graphe[12]->arete[0] = graphe[1];
-    graphe[12]->arete[1] = graphe[11];
+    graphe[12]->arete[0] = graphe[9];
+    graphe[12]->arete[1] = graphe[13];
+    graphe[12]->arete[2] = graphe[14];
+
+    graphe[13]->arete[0] = graphe[12];
+    graphe[13]->arete[1] = graphe[15];
+
+    graphe[14]->arete[0] = graphe[11];
+    graphe[14]->arete[1] = graphe[12];
+
+    graphe[15]->arete[0] = graphe[8];
+    graphe[15]->arete[1] = graphe[13];
 }
 
 void prepareDonnees()
 {
     // On vide les données avant découverte de chemin :
-    for (register unsigned int i = 0; i < 13; i++)
+    for (register unsigned int i = 0; i < 16; i++)
     {
         graphe[i]->parent = NULL;
         graphe[i]->heuristique = 0.0f;
@@ -149,14 +162,14 @@ void prepareDonnees()
 void libereCarte()
 {
     // Libère les graphe :
-    for (register unsigned int i = 0; i < 13; i++)
+    for (register unsigned int i = 0; i < 16; i++)
         delete graphe[i];
 }
 
 bool trouverChemin(Point* depart, Point* destination)
 {
     // On déclare les variables locales :
-    Point* verif[12];       // graphe à vérifier
+    Point* verif[16];       // graphe à vérifier
 
     Point* courant;         // Le point étudié en cours
     Point* accessible;      // Le point accessible par le point courant
@@ -244,7 +257,7 @@ bool trouverChemin(Point* depart, Point* destination)
 void construireChemin(Point* start, Point* pt)
 {
     // Tableau temporaire stockant le chemin dans le sens inverse :
-    Point* temp[13];
+    Point* temp[16];
     cheminS = 0;
 
     // On construit le chemin à partir des graphe parents :

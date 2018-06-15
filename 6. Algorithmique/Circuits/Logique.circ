@@ -59,56 +59,47 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <a name="clabel" val=""/>
     <a name="clabelup" val="east"/>
     <a name="clabelfont" val="SansSerif plain 12"/>
-    <wire from="(170,220)" to="(270,220)"/>
     <wire from="(360,220)" to="(450,220)"/>
-    <wire from="(150,370)" to="(230,370)"/>
     <wire from="(270,90)" to="(270,140)"/>
     <wire from="(270,170)" to="(270,220)"/>
     <wire from="(360,90)" to="(360,140)"/>
     <wire from="(360,170)" to="(360,220)"/>
-    <wire from="(400,370)" to="(470,370)"/>
+    <wire from="(170,220)" to="(270,220)"/>
+    <comp lib="6" loc="(464,124)" name="Text">
+      <a name="text" val="1 = Avant"/>
+      <a name="halign" val="left"/>
+    </comp>
+    <comp lib="6" loc="(503,87)" name="Text">
+      <a name="text" val="Sens des moteurs :"/>
+    </comp>
+    <comp lib="1" loc="(270,170)" name="NOT Gate">
+      <a name="facing" val="south"/>
+    </comp>
+    <comp lib="1" loc="(360,170)" name="NOT Gate">
+      <a name="facing" val="south"/>
+    </comp>
+    <comp lib="0" loc="(360,90)" name="Pin">
+      <a name="facing" val="south"/>
+      <a name="label" val="C"/>
+    </comp>
     <comp lib="0" loc="(450,220)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="label" val="Moteur gauche"/>
       <a name="labelloc" val="north"/>
     </comp>
-    <comp lib="1" loc="(360,170)" name="NOT Gate">
-      <a name="facing" val="south"/>
-    </comp>
-    <comp lib="0" loc="(270,90)" name="Pin">
-      <a name="facing" val="south"/>
-      <a name="label" val="B"/>
-    </comp>
-    <comp lib="0" loc="(150,370)" name="Pin">
-      <a name="label" val="A"/>
-    </comp>
-    <comp lib="1" loc="(270,170)" name="NOT Gate">
-      <a name="facing" val="south"/>
-    </comp>
-    <comp lib="6" loc="(524,367)" name="Text">
-      <a name="text" val="1 = Avant"/>
-      <a name="halign" val="left"/>
-    </comp>
     <comp lib="0" loc="(170,220)" name="Pin">
       <a name="output" val="true"/>
       <a name="label" val="Moteur droite"/>
       <a name="labelloc" val="north"/>
     </comp>
-    <comp lib="6" loc="(524,349)" name="Text">
+    <comp lib="6" loc="(464,106)" name="Text">
       <a name="text" val="0 = Arrière"/>
       <a name="halign" val="left"/>
     </comp>
-    <comp lib="6" loc="(563,330)" name="Text">
-      <a name="text" val="Sens des moteurs :"/>
-    </comp>
-    <comp lib="0" loc="(470,370)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="label" val="D"/>
-    </comp>
-    <comp lib="0" loc="(360,90)" name="Pin">
+    <comp lib="0" loc="(270,90)" name="Pin">
       <a name="facing" val="south"/>
-      <a name="label" val="C"/>
+      <a name="label" val="B"/>
     </comp>
   </circuit>
 </project>
