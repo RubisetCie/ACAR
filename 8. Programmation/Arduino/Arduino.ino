@@ -14,17 +14,18 @@
 #define NB_A 4        // Le nombre maximum d'arêtes par sommets
 
 #define AV_MAX -100   // La vitesse maximale des moteurs en avant (négative)
-#define AV_MIN -70    // La vitesse minimale des moteurs en avant (négative)
+#define AV_MIN -50    // La vitesse minimale des moteurs en avant (négative)
 #define AR_MAX 100    // La vitesse maximale des moteurs en arrière (positive)
-#define AR_MIN 70     // La vitesse minimale des moteurs en arrière (positive)
+#define AR_MIN 50     // La vitesse minimale des moteurs en arrière (positive)
 
 #define CPT_A 5       // Le PIN correspondant au capteur A
 #define CPT_B 2       // Le PIN correspondant au capteur B
 #define CPT_C 3       // Le PIN correspondant au capteur C
 #define CPT_D 6       // Le PIN correspondant au capteur D
 
-#define SEUIL_COR 250 // Le seuil de correction de trajectoire
-#define SEUIL_DET 20  // Le seuil de détection du capteur de distance
+#define SIL_ROT 800   // Le seuil de pivotage à l'intersection
+#define SIL_CCT 600   // Le seuil de temps durant lequel le robot est aveugle
+#define SIL_DET 20    // Le seuil de détection du capteur de distance
 
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
@@ -52,7 +53,6 @@ enum Phase
 {
   PH_ARRET,
   PH_DROIT,
-  PH_REDIRECTION
 };
 
 // Déclaration des variables globales :
@@ -60,7 +60,7 @@ Point* graphe[NB_S];  // Le graphe consitué de sommets et d'arrêtes (points)
 Point* chemin[NB_S];  // Le chemin à parcourir point par point
 
 Point* pointCourant;  // Pointeur vers le point sur lequel le robot se trouve
-Point* pointDest;     // Pointeur vers le point sur lequel le robot doit aller
+float angleCourant;   // Angle actuel du robot
 
 Phase phase;          // La phase actuelle du robot
 
@@ -83,6 +83,9 @@ void setup()
     phase = PH_DROIT;
   else
     phase = PH_ARRET;
+
+  pointCourant = graphe[0];
+  angleCourant = 0.0f;
 }
 
 // Fonction "loop" exécutée continuellement :
@@ -94,14 +97,14 @@ void loop()
   boolean cpt_C;        // Capteur arrière gauche
   boolean cpt_D;        // Capteur côté gauche
 
-  // On lit les capteurs :
-  lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D);
-
   if (phase == PH_DROIT)
   {
+    // On lit les capteurs :
+    lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D);
+  
     // On vérifie les intersections :
     intersection(cpt_A, cpt_D);
-    
+
     // On suit la trajectoire :
     trajectoire(cpt_B, cpt_C);
   }
@@ -158,20 +161,20 @@ void arrete()
   Motor.speed(MOTOR2, 0); 
 }
 
-// Fonction "tourneDroite" permet de tourner d'un certain angle vers la droite :
+// Fonction "tourneDroite" permet de tourner vers la droite :
 void tourneDroite()
 {
   // On inverse les vitesses des moteurs :
-  Motor.speed(MOTOR1, AV_MAX);
-  Motor.speed(MOTOR2, AR_MAX);
+  Motor.speed(MOTOR1, AV_MIN);
+  Motor.speed(MOTOR2, AR_MIN);
 }
 
-// Fonction "tourneGauche" permet de tourner d'un certain angle vers la gauche :
+// Fonction "tourneGauche" permet de tourner vers la gauche :
 void tourneGauche()
 {
   // On inverse les vitesses des moteurs :
-  Motor.speed(MOTOR1, AR_MAX);
-  Motor.speed(MOTOR2, AV_MAX);
+  Motor.speed(MOTOR1, AR_MIN);
+  Motor.speed(MOTOR2, AV_MIN);
 }
 
 /*
@@ -263,7 +266,11 @@ void prepareCarte()
 bool prepareTrajet()
 {
   // On construit le chemin (exemple) :
-  return trouverChemin(graphe[0], graphe[4]);
+  chemin[0] = new Point(0, 6);
+  chemin[1] = new Point(-4, 6);
+  chemin[2] = NULL;
+  
+  return true;
 }
 
 // Fonction "preparePoints" permet de vider les parents en vue d'une découverte de chemin :
@@ -278,29 +285,27 @@ void preparePoints()
   }
 }
 
-// Fonction "preparerCarte" permet de détecter les intersections et réagir :
+// Fonction "intersection" permet de détecter les intersections et réagir :
 void intersection(boolean A, boolean D)
 {
-  // Aucune intersection détectée :
-  if (!A && !D)
-    return;
-
-  // Intersection en 'L' :
-  if ((A && !D) || (!A && D))
+  if ((A || D))
   {
-    phase = PH_REDIRECTION;
-    arrete();
+    // On calcule le nouvel angle :
+    float angle = pointSuivant();
+    angleCourant = angle;
 
-    pointSuivant();
-  }
+    // Tourne à droite :
+    if (angle > 0)
+      tourneDroite();
+    else
+      tourneGauche();
+    
+    delay(SIL_ROT);
 
-  // Intersection en 'T' ou '+' :
-  if ((A && D))
-  {
-    phase = PH_REDIRECTION;
-    arrete();
-
-    pointSuivant();
+    // On avance légèrement pour le remettre sur la ligne :
+    avance();
+    
+    delay(SIL_CCT);
   }
 }
 
@@ -321,7 +326,7 @@ float pointSuivant()
         pointCourant = b;
 
         // Calcul de l'angle entre les deux points (direction à prendre) :
-        return atan2(a->y - b->y, a->x - b->x);
+        return angleCourant - atan2(a->y - b->y, a->x - b->x);
       }
     }
   }
