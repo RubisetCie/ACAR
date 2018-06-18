@@ -321,10 +321,10 @@ void intersection(boolean R, boolean L)
     float angle = pointSuivant();
     angleCourant = angle;
 
-    // Tourne à droite :
-    if (angle > 0)
+    // Tourne (ou pas) en fonction de l'angle :
+    if (angle > 45.0f)
       tourneDroite();
-    else
+    else if (angle < -45.0f)
       tourneGauche();
     
     delay(SIL_ROT);
@@ -342,7 +342,7 @@ float pointSuivant()
   // On cherche le point suivant :
   for (register unsigned int i = 0; i < NB_S; i++)
   {
-    if (chemin[i] == pointCourant && i < 12)
+    if (chemin[i] == pointCourant && i < NB_S)
     {
       if (chemin[i+1] != NULL)
       {
@@ -352,7 +352,7 @@ float pointSuivant()
         
         pointCourant = b;
 
-        // Calcul de l'angle entre les deux points (direction à prendre) :
+        // Calcul de la différence d'angle entre les deux points (direction à prendre) :
         return angleCourant - atan2(a->y - b->y, a->x - b->x);
       }
     }
