@@ -4,16 +4,13 @@
         <attribute name="name" value=""/>
         <attribute name="authors" value="rubisetcie"/>
         <attribute name="about" value=""/>
-        <attribute name="saved" value="2018-06-13 09:55:48 "/>
+        <attribute name="saved" value="2018-06-18 10:37:33 "/>
         <attribute name="created" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMTsiMDE6MDM6MTAgIjszMjk5"/>
-        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMzsiMDk6NTU6NDggIjsxNjszNDg5"/>
+        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xODsiMTA6Mzc6MzMgIjsxNzszNDgx"/>
     </attributes>
     <function name="Main" type="None" variable="">
         <parameters/>
         <body>
-            <comment text="D&#233;claration de la constante de correction en degr&#233;s :"/>
-            <declare name="CORRECTIONDELTA" type="Real" array="False" size=""/>
-            <assign variable="CORRECTIONDELTA" expression="5.0"/>
             <comment text="D&#233;claration des variables des&#13;&#10;capteurs :"/>
             <declare name="A" type="Boolean" array="False" size=""/>
             <declare name="B" type="Boolean" array="False" size=""/>
@@ -29,19 +26,17 @@
                 <if expression="B">
                     <then>
                         <comment text="Correction vers la droite :"/>
-                        <call expression="TourneDroite(CORRECTIONDELTA)"/>
+                        <call expression="CorrigeDroite()"/>
                     </then>
                     <else>
                         <if expression="C">
                             <then>
                                 <comment text="Correction vers la gauche :"/>
-                                <call expression="TourneGauche(CORRECTIONDELTA)"/>
+                                <call expression="CorrigeGauche()"/>
                             </then>
                             <else>
                                 <if expression="A or D">
                                     <then>
-                                        <comment text="On signale l'arriv&#233;e &#224; destination :"/>
-                                        <assign variable="Point" expression="Destination"/>
                                         <comment text="On se dirige vers le point suivant :"/>
                                         <call expression="PointSuivant()"/>
                                     </then>

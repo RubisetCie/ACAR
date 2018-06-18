@@ -4,9 +4,9 @@
         <attribute name="name" value=""/>
         <attribute name="authors" value="rubisetcie"/>
         <attribute name="about" value=""/>
-        <attribute name="saved" value="2018-06-13 09:57:38 "/>
+        <attribute name="saved" value="2018-06-18 10:46:44 "/>
         <attribute name="created" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMTsiMDM6MzQ6MjUgIjszMzEx"/>
-        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMzsiMDk6NTc6MzggIjs5OzM0NDQ="/>
+        <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xODsiMTA6NDY6NDQgIjsxMDszNDc2"/>
     </attributes>
     <function name="Main" type="None" variable="">
         <parameters/>
@@ -27,14 +27,14 @@
                 <call expression="LectureCapteur()"/>
                 <if expression="Distance &lt; SEUIL">
                     <then>
-                        <comment text="On mesure le temps &#233;coul&#233; durant lequel le v&#233;hicule passe &#224; proximit&#233; du b&#226;timent :"/>
-                        <assign variable="Chrono" expression="Chrono+0.166666"/>
-                    </then>
-                    <else>
                         <comment text="On calcule la longueur du b&#226;timent &#224; partir du temps et de la vitesse :"/>
                         <assign variable="Longueur" expression="Vitesse * Chrono"/>
                         <comment text="On remet le chrono &#224; z&#233;ro :"/>
                         <assign variable="Chrono" expression="0.0"/>
+                    </then>
+                    <else>
+                        <comment text="On mesure le temps &#233;coul&#233; durant lequel le v&#233;hicule passe &#224; proximit&#233; du b&#226;timent :"/>
+                        <assign variable="Chrono" expression="Chrono+0.166666"/>
                     </else>
                 </if>
             </while>
