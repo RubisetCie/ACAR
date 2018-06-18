@@ -13,20 +13,17 @@
 #define NB_S 16       // Le nombre de sommets du graphe
 #define NB_A 4        // Le nombre maximum d'arêtes par sommets
 
-#define AV_MAX -100   // La vitesse maximale des moteurs en avant (négative)
-#define AV_MIN -50    // La vitesse minimale des moteurs en avant (négative)
-#define AR_MAX 100    // La vitesse maximale des moteurs en arrière (positive)
-#define AR_MIN 50     // La vitesse minimale des moteurs en arrière (positive)
+#define AV_MAX 45     // La vitesse maximale des moteurs en avant (positive)
+#define AV_MIN 30     // La vitesse minimale des moteurs en avant (positive)
+#define AR_MAX -45    // La vitesse maximale des moteurs en arrière (négative)
+#define AR_MIN -30    // La vitesse minimale des moteurs en arrière (négative)
 
 #define CPT_A 7       // Le PIN correspondant au capteur A
 #define CPT_B 2       // Le PIN correspondant au capteur B
 #define CPT_C 3       // Le PIN correspondant au capteur C
 #define CPT_D 6       // Le PIN correspondant au capteur D
 
-#define SIL_COR 100   // Le seuil de correction du suiveur de ligne
-#define SIL_ROT 800   // Le seuil de pivotage à l'intersection
-#define SIL_CTP 1000  // Le seuil de temps durant lequel le robot est aveugle après pivotage
-#define SIL_DET 20    // Le seuil de détection du capteur de distance
+#define SIL_DR 100    // Le seuil pour avancer droit après une intersection
 
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
@@ -54,17 +51,26 @@ enum Phase
 {
   PH_ARRET,
   PH_AVANT,
-  PH_ARRIERE,
+  PH_PIVOT
+};
+
+// Déclaration de l'énumération "Direction" permettant de décrire le chemin :
+enum Direction
+{
+  DIR_DROIT,
+  DIR_GAUCHE,
+  DIR_DROITE,
+  DIR_FIN
 };
 
 // Déclaration des variables globales :
-Point* graphe[NB_S];  // Le graphe consitué de sommets et d'arrêtes (points)
-Point* chemin[NB_S];  // Le chemin à parcourir point par point
+Point* graphe[NB_S];    // Le graphe consitué de sommets et d'arrêtes (points)
+Direction chemin[NB_S]; // Le chemin à parcourir point par point
 
-Point* pointCourant;  // Pointeur vers le point sur lequel le robot se trouve
-float angleCourant;   // Angle actuel du robot
+unsigned int ptCourant; // Point sur lequel le robot se trouve
+float angleCourant;     // Angle actuel du robot
 
-Phase phase;          // La phase actuelle du robot
+Phase phase;            // La phase actuelle du robot
 
 /*
  *  FONCTIONS NATIVES ARDUINO
@@ -75,7 +81,7 @@ void setup()
 {
   // On initialise les moteurs :
   Motor.begin(I2C);
-  //Serial.begin(9600);
+  Serial.begin(9600);
 
   // On charge la carte :
   prepareCarte();
@@ -86,7 +92,7 @@ void setup()
   else
     phase = PH_ARRET;
 
-  pointCourant = graphe[0];
+  ptCourant = 0;
   angleCourant = 0.0f;
 }
 
@@ -105,8 +111,8 @@ void loop()
     lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D);
   
     // On vérifie les intersections :
-    if (phase == PH_AVANT)
-      intersection(cpt_A, cpt_D);
+    /*if (phase == PH_AVANT)
+      intersection(cpt_A, cpt_D);*/
 
     // On suit la trajectoire :
     trajectoire(cpt_B, cpt_C);
@@ -133,75 +139,51 @@ void lectureCapteurs(boolean& A, boolean& B, boolean& C, boolean& D)
 // Fonction "trajectoire" permet d'exécuter les déplacements en fonction des capteurs B et C :
 void trajectoire(boolean R, boolean L)
 {
-  if (R && L)
-  {
-    // On avance tout droit :
-    phase = PH_AVANT;
+  if (!R && !L)
     avance();
-  }
   else if (R && !L)
-  {
-    // On recule et tourne à droite :
-    phase = PH_ARRIERE;
-    corrigeDroite();
-  }
-  else if (R && !L)
-  {
-    // On recule et tourne à droite :
-    phase = PH_ARRIERE;
-    corrigeGauche();
-  }
+    tourneDroite();
+  else if (L && !R)
+    tourneGauche();
+  else if (R && L)
+    arrete();
 }
 
 // Fonction "avance" permet de se déplacer tout droit :
 void avance()
 {
-  Motor.speed(MOTOR1, AV_MIN);
-  Motor.speed(MOTOR2, AV_MIN); 
+  Motor.speed(MOTOR1, AV_MAX);
+  Motor.speed(MOTOR2, AV_MAX); 
 }
 
 // Fonction "recule" permet de se déplacer en marche-arrière :
 void recule()
 {
-  Motor.speed(MOTOR1, AR_MIN);
-  Motor.speed(MOTOR2, AR_MIN); 
+  Motor.speed(MOTOR1, AR_MAX);
+  Motor.speed(MOTOR2, AR_MAX); 
 }
 
 // Fonction "arrete" permet de s'arrêter :
 void arrete()
 {
-  Motor.speed(MOTOR1, 0);
-  Motor.speed(MOTOR2, 0); 
+  Motor.stop(MOTOR1);
+  Motor.stop(MOTOR2);
 }
 
 // Fonction "tourneDroite" permet de tourner vers la droite :
 void tourneDroite()
 {
   // On inverse les vitesses des moteurs :
-  Motor.speed(MOTOR1, AV_MAX);
-  Motor.speed(MOTOR2, AR_MAX);
+  Motor.speed(MOTOR1, AV_MIN);
+  Motor.speed(MOTOR2, AR_MIN);
 }
 
 // Fonction "tourneGauche" permet de tourner vers la gauche :
 void tourneGauche()
 {
   // On inverse les vitesses des moteurs :
-  Motor.speed(MOTOR1, AR_MAX);
-  Motor.speed(MOTOR2, AV_MAX);
-}
-
-// Fonction "corrigeDroite" permet de corriger vers la droite :
-void corrigeDroite()
-{
   Motor.speed(MOTOR1, AR_MIN);
-  Motor.speed(MOTOR2, 0);
-}
-
-// Fonction "corrigeGauche" permet de corriger vers la gauche :
-void corrigeGauche()
-{
-  Motor.speed(MOTOR1, 0);
-  Motor.speed(MOTOR2, AR_MIN);
+  Motor.speed(MOTOR2, AV_MIN);
 }
 
 /*
@@ -293,9 +275,9 @@ void prepareCarte()
 bool prepareTrajet()
 {
   // On construit le chemin (exemple) :
-  chemin[0] = new Point(0, 6);
-  chemin[1] = new Point(4, 6);
-  chemin[2] = NULL;
+  chemin[0] = DIR_DROIT;
+  chemin[1] = DIR_GAUCHE;
+  chemin[2] = DIR_FIN;
   
   return true;
 }
@@ -312,57 +294,20 @@ void preparePoints()
   }
 }
 
-// Fonction "intersection" permet de détecter les intersections et réagir :
-void intersection(boolean R, boolean L)
+// Fonction "intersection" permet de réagir en fonction de l'intersection :
+void intersection()
 {
-  if (R || L)
+  // On réagit en fonction de la prochaine étape du chemin :
+  switch (chemin[ptCourant+1])
   {
-    // On calcule le nouvel angle :
-    float angle = pointSuivant();
-    angleCourant = angle;
-
-    // Tourne (ou pas) en fonction de l'angle :
-    if (angle > 45.0f)
-      tourneDroite();
-    else if (angle < -45.0f)
-      tourneGauche();
-    
-    delay(SIL_ROT);
-
-    // On avance légèrement pour le remettre sur la ligne :
-    avance();
-    
-    delay(SIL_CTP);
-  }
-}
-
-// Fonction "pointSuivant" permet de se diriger vers le prochain point :
-float pointSuivant()
-{
-  // On cherche le point suivant :
-  for (register unsigned int i = 0; i < NB_S; i++)
-  {
-    if (chemin[i] == pointCourant && i < NB_S)
-    {
-      if (chemin[i+1] != NULL)
-      {
-        // Détermination du prochain point :
-        Point* a = pointCourant;
-        Point* b = chemin[i+1];
-        
-        pointCourant = b;
-
-        // Calcul de la différence d'angle entre les deux points (direction à prendre) :
-        return angleCourant - atan2(a->y - b->y, a->x - b->x);
-      }
-    }
+    case DIR_DROIT  : phase = PH_AVANT; avance(); delay(SIL_DR); break;
+    case DIR_GAUCHE : phase = PH_PIVOT; break;
+    case DIR_DROITE : phase = PH_PIVOT; break;
+    case DIR_FIN    : phase = PH_ARRET; arrete(); break;
   }
 
-  // Si la destination a été atteinte :
-  phase = PH_ARRET;
-
-  // Retourne un angle nul :
-  return 0.0;
+  // On incrémente le point courant :
+  ptCourant++;
 }
 
 // Fonction "trouverChemin" permet de découvrir le chemin de "dep" vers "dest" :
@@ -460,6 +405,9 @@ void construireChemin(Point* dep, Point* pt)
 {
   // On déclare les variables locales :
   Point* sommet[NB_S];      // Les points successifs du chemin inverse
+  Point* a = dep;           // Le point actuel
+  Point* b;                 // Le point suivant
+  float angle;              // L'angle calculé
   unsigned int sommets = 0; // Le nombre de sommets dans le chemin
 
   // On construit le chemin en remontant les parents :
@@ -472,9 +420,25 @@ void construireChemin(Point* dep, Point* pt)
   }
   while (pt != NULL && pt != dep);
 
-  // On inverse l'ordre des sommets :
+  // On détermines les mouvements simplifiés du robot :
   for (register unsigned int i = 0; i < sommets; i++)
-    chemin[i] = sommet[sommets - i - 1];
+  {
+    // Détermination de l'angle à prendre :
+    b = sommet[sommets - i - 1];
+    angle = angleCourant - atan2(a->y - b->y, a->x - b->x);
+
+    // On compare afin de déterminer la direction à prendre :
+    if (angle > 45.0)
+      chemin[i] = DIR_DROITE;
+    else if (angle < -45.0)
+      chemin[i] = DIR_GAUCHE;
+    else
+      chemin[i] = DIR_DROIT;
+
+    // On assigne en vue des prochains calculs :
+    angleCourant = angle;
+    a = b;
+  }
 
   // On insère un NULL à la fin si possible :
   if (sommets < NB_S)
