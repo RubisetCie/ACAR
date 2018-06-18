@@ -24,7 +24,9 @@
 #define CPT_D 6       // Le PIN correspondant au capteur D
 
 #define SIL_ROT 800   // Le seuil de pivotage à l'intersection
-#define SIL_CCT 600   // Le seuil de temps durant lequel le robot est aveugle
+#define SIL_COR 60    // Le seuil de correction du suiveur de ligne
+#define SIL_CTC 200   // Le seuil de temps durant lequel le robot est aveugle après correction
+#define SIL_CTP 600   // Le seuil de temps durant lequel le robot est aveugle après pivotage
 #define SIL_DET 20    // Le seuil de détection du capteur de distance
 
 // Déclaration de la classe "Point" représentant un point en 2D :
@@ -80,9 +82,15 @@ void setup()
 
   // On prépare le trajet et on règle la phase initiale :
   if (prepareTrajet())
+  {
+    avance();
     phase = PH_DROIT;
+  }
   else
+  {
+    arrete();
     phase = PH_ARRET;
+  }
 
   pointCourant = graphe[0];
   angleCourant = 0.0f;
@@ -130,14 +138,10 @@ void lectureCapteurs(boolean& A, boolean& B, boolean& C, boolean& D)
 // Fonction "trajectoire" permet d'exécuter les déplacements en fonction des capteurs B et C :
 void trajectoire(boolean B, boolean C)
 {
-  if (!B && !C)
-    avance();
-  else if (B && !C)
+  if (B && !C)
     tourneDroite();
   else if (C && !B)
     tourneGauche();
-  else
-    arrete();
 }
 
 // Fonction "avance" permet de se déplacer tout droit :
@@ -167,6 +171,14 @@ void tourneDroite()
   // On inverse les vitesses des moteurs :
   Motor.speed(MOTOR1, AV_MIN);
   Motor.speed(MOTOR2, AR_MIN);
+
+  delay(SIL_COR);
+
+  // On refait avancer le robot :
+  avance();
+
+  // On le laisse aveugle un certain temps pour qu'il se remtte droit :
+  delay(SIL_CTC);
 }
 
 // Fonction "tourneGauche" permet de tourner vers la gauche :
@@ -175,6 +187,14 @@ void tourneGauche()
   // On inverse les vitesses des moteurs :
   Motor.speed(MOTOR1, AR_MIN);
   Motor.speed(MOTOR2, AV_MIN);
+
+  delay(SIL_COR);
+
+  // On refait avancer le robot :
+  avance();
+
+  // On le laisse aveugle un certain temps pour qu'il se remtte droit :
+  delay(SIL_CTC);
 }
 
 /*
