@@ -18,15 +18,14 @@
 #define AR_MAX 100    // La vitesse maximale des moteurs en arrière (positive)
 #define AR_MIN 50     // La vitesse minimale des moteurs en arrière (positive)
 
-#define CPT_A 5       // Le PIN correspondant au capteur A
+#define CPT_A 7       // Le PIN correspondant au capteur A
 #define CPT_B 2       // Le PIN correspondant au capteur B
 #define CPT_C 3       // Le PIN correspondant au capteur C
 #define CPT_D 6       // Le PIN correspondant au capteur D
 
+#define SIL_COR 100   // Le seuil de correction du suiveur de ligne
 #define SIL_ROT 800   // Le seuil de pivotage à l'intersection
-#define SIL_COR 60    // Le seuil de correction du suiveur de ligne
-#define SIL_CTC 200   // Le seuil de temps durant lequel le robot est aveugle après correction
-#define SIL_CTP 600   // Le seuil de temps durant lequel le robot est aveugle après pivotage
+#define SIL_CTP 1000  // Le seuil de temps durant lequel le robot est aveugle après pivotage
 #define SIL_DET 20    // Le seuil de détection du capteur de distance
 
 // Déclaration de la classe "Point" représentant un point en 2D :
@@ -54,7 +53,8 @@ class Point
 enum Phase
 {
   PH_ARRET,
-  PH_DROIT,
+  PH_AVANT,
+  PH_ARRIERE,
 };
 
 // Déclaration des variables globales :
@@ -82,15 +82,9 @@ void setup()
 
   // On prépare le trajet et on règle la phase initiale :
   if (prepareTrajet())
-  {
-    avance();
-    phase = PH_DROIT;
-  }
+    phase = PH_AVANT;
   else
-  {
-    arrete();
     phase = PH_ARRET;
-  }
 
   pointCourant = graphe[0];
   angleCourant = 0.0f;
@@ -105,13 +99,14 @@ void loop()
   boolean cpt_C;        // Capteur arrière gauche
   boolean cpt_D;        // Capteur côté gauche
 
-  if (phase == PH_DROIT)
+  if (phase != PH_ARRET)
   {
     // On lit les capteurs :
     lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D);
   
     // On vérifie les intersections :
-    intersection(cpt_A, cpt_D);
+    if (phase == PH_AVANT)
+      intersection(cpt_A, cpt_D);
 
     // On suit la trajectoire :
     trajectoire(cpt_B, cpt_C);
@@ -136,12 +131,26 @@ void lectureCapteurs(boolean& A, boolean& B, boolean& C, boolean& D)
 */
 
 // Fonction "trajectoire" permet d'exécuter les déplacements en fonction des capteurs B et C :
-void trajectoire(boolean B, boolean C)
+void trajectoire(boolean R, boolean L)
 {
-  if (B && !C)
-    tourneDroite();
-  else if (C && !B)
-    tourneGauche();
+  if (R && L)
+  {
+    // On avance tout droit :
+    phase = PH_AVANT;
+    avance();
+  }
+  else if (R && !L)
+  {
+    // On recule et tourne à droite :
+    phase = PH_ARRIERE;
+    corrigeDroite();
+  }
+  else if (R && !L)
+  {
+    // On recule et tourne à droite :
+    phase = PH_ARRIERE;
+    corrigeGauche();
+  }
 }
 
 // Fonction "avance" permet de se déplacer tout droit :
@@ -169,32 +178,30 @@ void arrete()
 void tourneDroite()
 {
   // On inverse les vitesses des moteurs :
-  Motor.speed(MOTOR1, AV_MIN);
-  Motor.speed(MOTOR2, AR_MIN);
-
-  delay(SIL_COR);
-
-  // On refait avancer le robot :
-  avance();
-
-  // On le laisse aveugle un certain temps pour qu'il se remtte droit :
-  delay(SIL_CTC);
+  Motor.speed(MOTOR1, AV_MAX);
+  Motor.speed(MOTOR2, AR_MAX);
 }
 
 // Fonction "tourneGauche" permet de tourner vers la gauche :
 void tourneGauche()
 {
   // On inverse les vitesses des moteurs :
+  Motor.speed(MOTOR1, AR_MAX);
+  Motor.speed(MOTOR2, AV_MAX);
+}
+
+// Fonction "corrigeDroite" permet de corriger vers la droite :
+void corrigeDroite()
+{
   Motor.speed(MOTOR1, AR_MIN);
-  Motor.speed(MOTOR2, AV_MIN);
+  Motor.speed(MOTOR2, 0);
+}
 
-  delay(SIL_COR);
-
-  // On refait avancer le robot :
-  avance();
-
-  // On le laisse aveugle un certain temps pour qu'il se remtte droit :
-  delay(SIL_CTC);
+// Fonction "corrigeGauche" permet de corriger vers la gauche :
+void corrigeGauche()
+{
+  Motor.speed(MOTOR1, 0);
+  Motor.speed(MOTOR2, AR_MIN);
 }
 
 /*
@@ -287,7 +294,7 @@ bool prepareTrajet()
 {
   // On construit le chemin (exemple) :
   chemin[0] = new Point(0, 6);
-  chemin[1] = new Point(-4, 6);
+  chemin[1] = new Point(4, 6);
   chemin[2] = NULL;
   
   return true;
@@ -306,9 +313,9 @@ void preparePoints()
 }
 
 // Fonction "intersection" permet de détecter les intersections et réagir :
-void intersection(boolean A, boolean D)
+void intersection(boolean R, boolean L)
 {
-  if ((A || D))
+  if (R || L)
   {
     // On calcule le nouvel angle :
     float angle = pointSuivant();
@@ -325,7 +332,7 @@ void intersection(boolean A, boolean D)
     // On avance légèrement pour le remettre sur la ligne :
     avance();
     
-    delay(SIL_CCT);
+    delay(SIL_CTP);
   }
 }
 
