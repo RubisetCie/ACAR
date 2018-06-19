@@ -6,7 +6,7 @@
 struct Point
 {
     // Constructeur :
-    Point(unsigned int n, unsigned int x, unsigned int y) : num(n), x(x), y(y)
+    Point(unsigned int x, unsigned int y) : x(x), y(y)
     {
         arete[0] = NULL;
         arete[1] = NULL;
@@ -18,8 +18,6 @@ struct Point
     Point* parent;
 
     float heuristique;
-
-    unsigned int num;
 
     unsigned int x;
     unsigned int y;
@@ -57,7 +55,7 @@ int main()
     printf("Veuillez entrer le point de depart : ");
     scanf("%u", &s);
 
-    printf("Veuillez entrer le point d'arrivée : ");
+    printf("Veuillez entrer le point d'arrivee : ");
     scanf("%u", &e);
 
     // On lance la recherche de chemin :
@@ -70,9 +68,9 @@ int main()
     {
         switch (chemin[i])
         {
-            case DIR_DROIT  : printf("%d - Droit.\n", i + 1); break;
-            case DIR_GAUCHE : printf("%d - Gauche.\n", i + 1); break;
-            case DIR_DROITE : printf("%d - Droite.\n", i + 1); break;
+            case DIR_DROIT  : printf("%d - Droit\n", i + 1); break;
+            case DIR_GAUCHE : printf("%d - Gauche\n", i + 1); break;
+            case DIR_DROITE : printf("%d - Droite\n", i + 1); break;
         }
     }
 
@@ -85,22 +83,22 @@ int main()
 void prepareCarte()
 {
     // Remplit la carte des points :
-    graphe[0]  = new Point(1, 0, 0);
-    graphe[1]  = new Point(2, 4, 0);
-    graphe[2]  = new Point(3, 0, 3);
-    graphe[3]  = new Point(4, 12, 0);
-    graphe[4]  = new Point(5, 4, 3);
-    graphe[5]  = new Point(6, 0, 7);
-    graphe[6]  = new Point(7, 15, 0);
-    graphe[7]  = new Point(8, 12, 3);
-    graphe[8]  = new Point(9, 15, 7);
-    graphe[9]  = new Point(10, 0, 12);
-    graphe[10] = new Point(11, 17, 0);
-    graphe[11] = new Point(12, 17, 7);
-    graphe[12] = new Point(13, 4, 12);
-    graphe[13] = new Point(14, 4, 9);
-    graphe[14] = new Point(15, 15, 12);
-    graphe[15] = new Point(16, 15, 9);
+    graphe[0]  = new Point(0, 0);
+    graphe[1]  = new Point(4, 0);
+    graphe[2]  = new Point(0, 3);
+    graphe[3]  = new Point(12, 0);
+    graphe[4]  = new Point(4, 3);
+    graphe[5]  = new Point(0, 7);
+    graphe[6]  = new Point(15, 0);
+    graphe[7]  = new Point(12, 3);
+    graphe[8]  = new Point(15, 7);
+    graphe[9]  = new Point(0, 12);
+    graphe[10] = new Point(17, 0);
+    graphe[11] = new Point(17, 7);
+    graphe[12] = new Point(4, 12);
+    graphe[13] = new Point(4, 9);
+    graphe[14] = new Point(15, 12);
+    graphe[15] = new Point(15, 9);
 
     // Créé les accès entre les points :
     graphe[0]->arete[0] = graphe[1];
@@ -272,10 +270,10 @@ void construireChemin(Point* start, Point* pt)
 {
     // Tableau temporaire stockant le chemin dans le sens inverse :
     Point* temp[16];
-    Point* a = start;         // Le point actuel
-    Point* b;                 // Le point suivant
-    float angleCourant = 0.0f;
-    float angle;              // L'angle calculé
+    Point* a = start;           // Le point actuel
+    Point* b;                   // Le point suivant
+    float angleCourant = 0.0f;  // L'angle par défaut
+    float angle;                // L'angle calculé
     cheminS = 0;
 
     // On construit le chemin à partir des graphe parents :
@@ -293,20 +291,22 @@ void construireChemin(Point* start, Point* pt)
     {
         // Détermination de l'angle à prendre :
         b = temp[cheminS - i - 1];
-        angle = angleCourant - atan2(a->y - b->y, a->x - b->x);
+        angle = atan2(b->y - a->y, b->x - a->x);
 
-        //printf("Angle : %f\n", angle);
+        printf("A : (%d, %d)\n", a->x, a->y);
+        printf("B : (%d, %d)\n", b->x, b->y);
+        printf("Angle : %f\n\n", angle);
 
         // On compare afin de déterminer la direction à prendre :
-        if (angle > 1.0)
-            chemin[i] = DIR_GAUCHE;
-        else if (angle < -1.0)
+        if (angle - angleCourant > 1.0)
             chemin[i] = DIR_DROITE;
+        else if (angle - angleCourant < -1.0)
+            chemin[i] = DIR_GAUCHE;
         else
             chemin[i] = DIR_DROIT;
 
         // On assigne en vue des prochains calculs :
-        angleCourant = angle;
+        angleCourant = atan2(b->y - a->y, b->x - a->x);
         a = b;
     }
 

@@ -16,17 +16,18 @@
 #define AV_MAX 85     // La vitesse maximale des moteurs en avant (positive)
 #define AV_MIN 55     // La vitesse minimale des moteurs en avant (positive)
 #define AR_MAX -85    // La vitesse maximale des moteurs en arrière (négative)
-#define AR_MIN -55    // La vitesse minimale des moteurs en arrière (négative)
+#define AR_MIN -30    // La vitesse minimale des moteurs en arrière (négative)
 
 #define CPT_A 7       // Le PIN correspondant au capteur A
 #define CPT_B 2       // Le PIN correspondant au capteur B
 #define CPT_C 3       // Le PIN correspondant au capteur C
 #define CPT_D 6       // Le PIN correspondant au capteur D
 
-#define SIL_DR 110    // Le seuil pour bouger après une intersection
-#define SIL_CPT 5     // Le seuil d'incrémentation du compteur
+#define SIL_DR 90     // Le seuil pour bouger après une intersection
+#define SIL_IR 600    // Le seuil d'attente après une intersection
+#define SIL_CPT 4     // Le seuil d'incrémentation du compteur
 #define SIL_IL 150    // Le seuil de détection d'une intersection en L
-#define SIL_IT 750    // Le seuil de détection d'une intersection en T
+#define SIL_IT 50     // Le seuil de détection d'une intersection en T
 
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
@@ -92,7 +93,14 @@ void setup()
 
   // On prépare le trajet et on règle la phase initiale :
   if (prepareTrajet())
-    phase = PH_AVANT;
+  {
+    switch (chemin[0])
+    {
+      case DIR_DROIT  : phase = PH_AVANT; break;
+      case DIR_GAUCHE : phase = PH_PIVOT; tourneGauche(); delay(SIL_IR); break;
+      case DIR_DROITE : phase = PH_PIVOT; tourneDroite(); delay(SIL_IR); break;
+    }
+  }
   else
     phase = PH_ARRET;
 
@@ -157,10 +165,7 @@ void trajectoire(boolean R, boolean L)
     // On détecte si le véhicule se trouve à une intersection en L :
     compteur += SIL_CPT;
     if (compteur > SIL_IL)
-    {
       pointSuivant();
-      compteur = 0;
-    }
   }
   else if (L && !R)
   {
@@ -169,15 +174,13 @@ void trajectoire(boolean R, boolean L)
     // On détecte si le véhicule se trouve à une intersection en L :
     compteur += SIL_CPT;
     if (compteur > SIL_IL)
-    {
       pointSuivant();
-      compteur = 0;
-    }
   }
   else if (R && L)
   {
-    // Intersection détectée :
-    intersection();
+    // On teste une intersection :
+    if (compteur < SIL_IT)
+      intersection();
   }
 }
 
@@ -345,7 +348,8 @@ bool prepareTrajet()
   // On construit le chemin (exemple) :
   chemin[0] = DIR_DROIT;
   chemin[1] = DIR_GAUCHE;
-  chemin[2] = DIR_FIN;
+  chemin[2] = DIR_GAUCHE;
+  chemin[3] = DIR_FIN;
 
   // On met le point courant à zéro :
   ptCourant = 0;
@@ -374,7 +378,7 @@ void intersection()
   // On arrête le véhicule un moment :
   arrete();
 
-  delay(SIL_IT);
+  delay(SIL_IR);
     
   // On réagit en fonction de la prochaine étape du chemin :
   switch (chemin[ptCourant+1])
@@ -507,6 +511,7 @@ void construireChemin(Point* dep, Point* pt)
   Point* a = dep;           // Le point actuel
   Point* b;                 // Le point suivant
   float angle;              // L'angle calculé
+  float delta;              // La différence d'angle
   unsigned int sommets = 0; // Le nombre de sommets dans le chemin
 
   // On construit le chemin en remontant les parents :
@@ -524,13 +529,14 @@ void construireChemin(Point* dep, Point* pt)
   {
     // Détermination de l'angle à prendre :
     b = sommet[sommets - i - 1];
-    angle = angleCourant - atan2(a->y - b->y, a->x - b->x);
+    angle = atan2(a->y - b->y, a->x - b->x);
+    delta = angle - angleCourant;
 
     // On compare afin de déterminer la direction à prendre :
-    if (angle > 1.0f)
-      chemin[i] = DIR_GAUCHE;
-    else if (angle < -1.0f)
+    if (delta > 1.0)
       chemin[i] = DIR_DROITE;
+    else if (delta < -1.0)
+      chemin[i] = DIR_GAUCHE;
     else
       chemin[i] = DIR_DROIT;
 
