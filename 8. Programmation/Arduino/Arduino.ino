@@ -381,7 +381,13 @@ bool prepareTrajet()
   chemin[3] = DIR_DROITE;
   chemin[4] = DIR_GAUCHE;
   chemin[5] = DIR_GAUCHE;
-  chemin[6] = DIR_FIN;
+  chemin[6] = DIR_GAUCHE;
+  chemin[7] = DIR_DROIT;
+  chemin[8] = DIR_GAUCHE;
+  chemin[9] = DIR_DROITE;
+  chemin[10] = DIR_DROIT;
+  chemin[11] = DIR_DROITE;
+  chemin[12] = DIR_FIN;
 
   // On met le point courant à zéro :
   ptCourant = 0;
