@@ -18,15 +18,18 @@
 #define AR_MAX -85    // La vitesse maximale des moteurs en arrière (négative)
 #define AR_MIN -30    // La vitesse minimale des moteurs en arrière (négative)
 
-#define CPT_A 7       // Le PIN correspondant au capteur A
+#define CPT_A 7       // Le PIN correspondant au capteur A (sécurité gauche)
 #define CPT_B 2       // Le PIN correspondant au capteur B
 #define CPT_C 3       // Le PIN correspondant au capteur C
-#define CPT_D 6       // Le PIN correspondant au capteur D
+#define CPT_D 6       // Le PIN correspondant au capteur D (sécurité droit)
 
-#define SIL_DR 90     // Le seuil pour bouger après une intersection
-#define SIL_IR 600    // Le seuil d'attente après une intersection
+#define SIL_DRR 95    // Le seuil pour tourner après une intersection
+#define SIL_DRP 1100  // Le seuil pour pivoter après une intersection
+#define SIL_DRA 285   // Le seuil pour avancer après une intersection
+#define SIL_IR 500    // Le seuil d'attente après une intersection
+#define SIL_SEC 100   // Le seuil de sécurité pour détecter une intersection supplémentaire
 #define SIL_CPT 4     // Le seuil d'incrémentation du compteur
-#define SIL_IL 150    // Le seuil de détection d'une intersection en L
+#define SIL_IL 165    // Le seuil de détection d'une intersection en L
 #define SIL_IT 50     // Le seuil de détection d'une intersection en T
 
 // Déclaration de la classe "Point" représentant un point en 2D :
@@ -72,7 +75,8 @@ Point* graphe[NB_S];    // Le graphe consitué de sommets et d'arrêtes (points)
 Direction chemin[NB_S]; // Le chemin à parcourir point par point
 
 unsigned int ptCourant; // Point sur lequel le robot se trouve
-unsigned int compteur;  // Compteur pour détecter une intersection
+unsigned int cpL;       // Compteur pour détecter une intersection en L
+unsigned int cpI;       // Compteur pour détecter une intersection non-détectée
 float angleCourant;     // Angle actuel du robot
 
 Phase phase;            // La phase actuelle du robot
@@ -105,7 +109,8 @@ void setup()
     phase = PH_ARRET;
 
   // On initialise les variables globales :
-  compteur = 0;
+  cpL = 0;
+  cpI = 0;
   angleCourant = 0.0f;
 }
 
@@ -126,13 +131,16 @@ void loop()
     // On effectue les mouvements en fonction de la phase du véhicule :
     switch (phase)
     {
-      case PH_AVANT : trajectoire(cpt_B, cpt_C); break;
+      case PH_AVANT : trajectoire(cpt_B, cpt_C, cpt_D, cpt_A); break;
       case PH_PIVOT : pivot(cpt_B, cpt_C); break;
     }
 
-    // On remet progressivement le compteur à zéro :
-    if (compteur > 0)
-      compteur--;
+    // On remet progressivement les compteurs à zéro :
+    if (cpL > 0)
+      cpL--;
+
+    if (cpI > 0)
+      cpI--;
   }
 }
 
@@ -154,7 +162,7 @@ void lectureCapteurs(boolean& A, boolean& B, boolean& C, boolean& D)
 */
 
 // Fonction "trajectoire" permet d'exécuter les déplacements en fonction des capteurs B et C :
-void trajectoire(boolean R, boolean L)
+void trajectoire(boolean R, boolean L, boolean RS, boolean LS)
 {
   if (!R && !L)
     avance();
@@ -163,8 +171,8 @@ void trajectoire(boolean R, boolean L)
     pivotDroite();
     
     // On détecte si le véhicule se trouve à une intersection en L :
-    compteur += SIL_CPT;
-    if (compteur > SIL_IL)
+    cpL += SIL_CPT;
+    if (cpL > SIL_IL)
       pointSuivant();
   }
   else if (L && !R)
@@ -172,15 +180,36 @@ void trajectoire(boolean R, boolean L)
     pivotGauche();
 
     // On détecte si le véhicule se trouve à une intersection en L :
-    compteur += SIL_CPT;
-    if (compteur > SIL_IL)
+    cpL += SIL_CPT;
+    if (cpL > SIL_IL)
       pointSuivant();
   }
   else if (R && L)
   {
     // On teste une intersection :
-    if (compteur < SIL_IT)
-      intersection();
+    if (cpL < SIL_IT)
+      intersection(false);
+  }
+
+  if (cpI == 0)
+  {
+    // On teste une intersection supplémentaire :
+    if (RS || LS)
+      intersection(true);
+  }
+  else
+  {
+    // On rectifie une mauvaise manoeuvre :
+    if (chemin[ptCourant] == DIR_DROITE && RS)
+    {
+      pivotDroite();
+      delay(SIL_DRP);
+    }
+    else if (chemin[ptCourant] == DIR_GAUCHE && LS)
+    {
+      pivotGauche();
+      delay(SIL_DRP);
+    }
   }
 }
 
@@ -347,9 +376,12 @@ bool prepareTrajet()
 {
   // On construit le chemin (exemple) :
   chemin[0] = DIR_DROIT;
-  chemin[1] = DIR_GAUCHE;
-  chemin[2] = DIR_GAUCHE;
-  chemin[3] = DIR_FIN;
+  chemin[1] = DIR_DROIT;
+  chemin[2] = DIR_DROIT;
+  chemin[3] = DIR_DROITE;
+  chemin[4] = DIR_GAUCHE;
+  chemin[5] = DIR_GAUCHE;
+  chemin[6] = DIR_FIN;
 
   // On met le point courant à zéro :
   ptCourant = 0;
@@ -373,7 +405,7 @@ void preparePoints()
 }
 
 // Fonction "intersection" permet de réagir en fonction de l'intersection :
-void intersection()
+void intersection(boolean sec)
 {
   // On arrête le véhicule un moment :
   arrete();
@@ -381,19 +413,33 @@ void intersection()
   delay(SIL_IR);
     
   // On réagit en fonction de la prochaine étape du chemin :
-  switch (chemin[ptCourant+1])
+  if (sec)
   {
-    case DIR_DROIT  : phase = PH_AVANT; avance(); delay(SIL_DR); break;
-    case DIR_GAUCHE : phase = PH_PIVOT; tourneGauche(); delay(SIL_DR); break;
-    case DIR_DROITE : phase = PH_PIVOT; tourneDroite(); delay(SIL_DR); break;
-    case DIR_FIN    : phase = PH_ARRET; arrete(); break;
+    switch (chemin[ptCourant+1])
+    {
+      case DIR_DROIT  : phase = PH_AVANT; avance(); break;
+      case DIR_GAUCHE : phase = PH_PIVOT; pivotGauche(); delay(SIL_DRP); break;
+      case DIR_DROITE : phase = PH_PIVOT; pivotDroite(); delay(SIL_DRP); break;
+      case DIR_FIN    : phase = PH_ARRET; arrete(); break;
+    }
+  }
+  else
+  {
+    switch (chemin[ptCourant+1])
+    {
+      case DIR_DROIT  : phase = PH_AVANT; avance(); delay(SIL_DRA); break;
+      case DIR_GAUCHE : phase = PH_PIVOT; tourneGauche(); delay(SIL_DRR); break;
+      case DIR_DROITE : phase = PH_PIVOT; tourneDroite(); delay(SIL_DRR); break;
+      case DIR_FIN    : phase = PH_ARRET; arrete(); break;
+    }
   }
 
   // On incrémente le point courant :
   ptCourant++;
 
-  // On remet le compteur à zéro :
-  compteur = 0;
+  // On initialise les compteurs :
+  cpL = 0;
+  cpI = SIL_SEC;
 }
 
 // Fonction "pointSuivant" permet de passer au point suivant :
@@ -410,7 +456,7 @@ void pointSuivant()
   ptCourant++;
 
   // On remet le compteur à zéro :
-  compteur = 0;
+  cpL = 0;
 }
 
 // Fonction "trouverChemin" permet de découvrir le chemin de "dep" vers "dest" :
