@@ -95,7 +95,7 @@ void setup()
   else
     phase = PH_ARRET;
 
-  ptCourant = 0;
+  // On initialise les variables globales :
   compteur = 0;
   angleCourant = 0.0f;
 }
@@ -114,8 +114,12 @@ void loop()
     // On lit les capteurs :
     lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D);
   
-    // On suit la trajectoire :
-    trajectoire(cpt_B, cpt_C);
+    // On effectue les mouvements en fonction de la phase du véhicule :
+    switch (phase)
+    {
+      case PH_AVANT : trajectoire(cpt_B, cpt_C); break;
+      case PH_PIVOT : pivot(cpt_B, cpt_C); break;
+    }
 
     // On remet progressivement le compteur à zéro :
     if (compteur > 0)
@@ -170,7 +174,34 @@ void trajectoire(boolean R, boolean L)
     }
   }
   else if (R && L)
+  {
+    // Intersection détectée :
     arrete();
+
+    delay(500);
+    
+    intersection();
+  }
+}
+
+// Fonction "pivot" permet de pivoter en fonction des capteurs B et C :
+void pivot(boolean R, boolean L)
+{
+  if (!R && !L)
+  {
+    // Le robot est de nouveau sur une ligne droite :
+    phase = PH_AVANT;
+    avance();
+  }
+  else
+  {
+    // On fait tourner le robot :
+    switch (chemin[ptCourant])
+    {
+      case DIR_GAUCHE : tourneGauche(); break;
+      case DIR_DROITE : tourneDroite(); break;
+    }
+  }
 }
 
 // Fonction "avance" permet de se déplacer tout droit :
@@ -302,6 +333,9 @@ bool prepareTrajet()
   chemin[0] = DIR_DROIT;
   chemin[1] = DIR_GAUCHE;
   chemin[2] = DIR_FIN;
+
+  // On remet le point courant à zéro :
+  ptCourant = 0;
   
   return true;
 }
@@ -316,6 +350,9 @@ void preparePoints()
     graphe[i]->h = 0.0f;
     graphe[i]->v = false;
   }
+
+  // On remet le point courant à zéro :
+  ptCourant = 0;
 }
 
 // Fonction "intersection" permet de réagir en fonction de l'intersection :
@@ -339,7 +376,10 @@ void pointSuivant()
 {
   // Si le circuit est terminé :
   if (chemin[ptCourant+1] == DIR_FIN)
+  {
+    phase = PH_ARRET;
     arrete();
+  }
 
   // On incrémente le point courant :
   ptCourant++;
