@@ -27,8 +27,16 @@ struct Point
     bool verifie;
 };
 
+enum Direction
+{
+    DIR_DROIT,
+    DIR_GAUCHE,
+    DIR_DROITE,
+    DIR_FIN
+};
+
 Point* graphe[16];
-Point* chemin[16];
+Direction chemin[16];
 unsigned int cheminS;
 
 void prepareCarte();
@@ -57,10 +65,16 @@ int main()
 
     // On affiche le chemin :
     printf("\nLe chemin pour y acceder est :\n");
-    printf("1 - Pt %d\n", graphe[s-1]->num);
 
     for (register unsigned int i = 0; i < cheminS; i++)
-        printf("%d - Pt %d\n", i + 2, chemin[i]->num);
+    {
+        switch (chemin[i])
+        {
+            case DIR_DROIT  : printf("%d - Droit.\n", i + 1); break;
+            case DIR_GAUCHE : printf("%d - Gauche.\n", i + 1); break;
+            case DIR_DROITE : printf("%d - Droite.\n", i + 1); break;
+        }
+    }
 
     // On libère la mémoire :
     libereCarte();
@@ -258,6 +272,10 @@ void construireChemin(Point* start, Point* pt)
 {
     // Tableau temporaire stockant le chemin dans le sens inverse :
     Point* temp[16];
+    Point* a = start;         // Le point actuel
+    Point* b;                 // Le point suivant
+    float angleCourant = 0.0f;
+    float angle;              // L'angle calculé
     cheminS = 0;
 
     // On construit le chemin à partir des graphe parents :
@@ -270,7 +288,28 @@ void construireChemin(Point* start, Point* pt)
     }
     while (pt != NULL && pt != start);
 
-    // On remplit la table chemin dans le sens inverse :
+    // On détermines les mouvements simplifiés du robot :
     for (register unsigned int i = 0; i < cheminS; i++)
-        chemin[i] = temp[cheminS - i - 1];
+    {
+        // Détermination de l'angle à prendre :
+        b = temp[cheminS - i - 1];
+        angle = angleCourant - atan2(a->y - b->y, a->x - b->x);
+
+        //printf("Angle : %f\n", angle);
+
+        // On compare afin de déterminer la direction à prendre :
+        if (angle > 1.0)
+            chemin[i] = DIR_GAUCHE;
+        else if (angle < -1.0)
+            chemin[i] = DIR_DROITE;
+        else
+            chemin[i] = DIR_DROIT;
+
+        // On assigne en vue des prochains calculs :
+        angleCourant = angle;
+        a = b;
+    }
+
+    // On insère la fin du parcours si possible :
+    chemin[cheminS] = DIR_FIN;
 }

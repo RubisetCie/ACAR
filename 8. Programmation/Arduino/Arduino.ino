@@ -13,10 +13,10 @@
 #define NB_S 16       // Le nombre de sommets du graphe
 #define NB_A 4        // Le nombre maximum d'arêtes par sommets
 
-#define AV_MAX 45     // La vitesse maximale des moteurs en avant (positive)
-#define AV_MIN 30     // La vitesse minimale des moteurs en avant (positive)
-#define AR_MAX -45    // La vitesse maximale des moteurs en arrière (négative)
-#define AR_MIN -30    // La vitesse minimale des moteurs en arrière (négative)
+#define AV_MAX 85     // La vitesse maximale des moteurs en avant (positive)
+#define AV_MIN 55     // La vitesse minimale des moteurs en avant (positive)
+#define AR_MAX -85    // La vitesse maximale des moteurs en arrière (négative)
+#define AR_MIN -55    // La vitesse minimale des moteurs en arrière (négative)
 
 #define CPT_A 7       // Le PIN correspondant au capteur A
 #define CPT_B 2       // Le PIN correspondant au capteur B
@@ -24,6 +24,8 @@
 #define CPT_D 6       // Le PIN correspondant au capteur D
 
 #define SIL_DR 100    // Le seuil pour avancer droit après une intersection
+#define SIL_CPT 15    // Le seuil d'incrémentation du compteur
+#define SIL_IL 100    // Le seuil de détection d'une intersection en L
 
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
@@ -68,6 +70,7 @@ Point* graphe[NB_S];    // Le graphe consitué de sommets et d'arrêtes (points)
 Direction chemin[NB_S]; // Le chemin à parcourir point par point
 
 unsigned int ptCourant; // Point sur lequel le robot se trouve
+unsigned int compteur;  // Compteur pour détecter une intersection
 float angleCourant;     // Angle actuel du robot
 
 Phase phase;            // La phase actuelle du robot
@@ -93,6 +96,7 @@ void setup()
     phase = PH_ARRET;
 
   ptCourant = 0;
+  compteur = 0;
   angleCourant = 0.0f;
 }
 
@@ -110,12 +114,12 @@ void loop()
     // On lit les capteurs :
     lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D);
   
-    // On vérifie les intersections :
-    /*if (phase == PH_AVANT)
-      intersection(cpt_A, cpt_D);*/
-
     // On suit la trajectoire :
     trajectoire(cpt_B, cpt_C);
+
+    // On remet progressivement le compteur à zéro :
+    if (compteur > 0)
+      compteur--;
   }
 }
 
@@ -142,9 +146,29 @@ void trajectoire(boolean R, boolean L)
   if (!R && !L)
     avance();
   else if (R && !L)
+  {
     tourneDroite();
+    
+    // On détecte si le véhicule se trouve à une intersection en L :
+    compteur += SIL_CPT;
+    if (compteur > SIL_IL)
+    {
+      pointSuivant();
+      compteur = 0;
+    }
+  }
   else if (L && !R)
+  {
     tourneGauche();
+
+    // On détecte si le véhicule se trouve à une intersection en L :
+    compteur += SIL_CPT;
+    if (compteur > SIL_IL)
+    {
+      pointSuivant();
+      compteur = 0;
+    }
+  }
   else if (R && L)
     arrete();
 }
@@ -152,15 +176,15 @@ void trajectoire(boolean R, boolean L)
 // Fonction "avance" permet de se déplacer tout droit :
 void avance()
 {
-  Motor.speed(MOTOR1, AV_MAX);
-  Motor.speed(MOTOR2, AV_MAX); 
+  Motor.speed(MOTOR1, AV_MIN);
+  Motor.speed(MOTOR2, AV_MIN); 
 }
 
 // Fonction "recule" permet de se déplacer en marche-arrière :
 void recule()
 {
-  Motor.speed(MOTOR1, AR_MAX);
-  Motor.speed(MOTOR2, AR_MAX); 
+  Motor.speed(MOTOR1, AR_MIN);
+  Motor.speed(MOTOR2, AR_MIN); 
 }
 
 // Fonction "arrete" permet de s'arrêter :
@@ -174,16 +198,16 @@ void arrete()
 void tourneDroite()
 {
   // On inverse les vitesses des moteurs :
-  Motor.speed(MOTOR1, AV_MIN);
-  Motor.speed(MOTOR2, AR_MIN);
+  Motor.speed(MOTOR1, AV_MAX);
+  Motor.speed(MOTOR2, AR_MAX);
 }
 
 // Fonction "tourneGauche" permet de tourner vers la gauche :
 void tourneGauche()
 {
   // On inverse les vitesses des moteurs :
-  Motor.speed(MOTOR1, AR_MIN);
-  Motor.speed(MOTOR2, AV_MIN);
+  Motor.speed(MOTOR1, AR_MAX);
+  Motor.speed(MOTOR2, AV_MAX);
 }
 
 /*
@@ -310,6 +334,17 @@ void intersection()
   ptCourant++;
 }
 
+// Fonction "pointSuivant" permet de passer au point suivant :
+void pointSuivant()
+{
+  // Si le circuit est terminé :
+  if (chemin[ptCourant+1] == DIR_FIN)
+    arrete();
+
+  // On incrémente le point courant :
+  ptCourant++;
+}
+
 // Fonction "trouverChemin" permet de découvrir le chemin de "dep" vers "dest" :
 bool trouverChemin(Point* dep, Point* dest)
 {
@@ -428,10 +463,10 @@ void construireChemin(Point* dep, Point* pt)
     angle = angleCourant - atan2(a->y - b->y, a->x - b->x);
 
     // On compare afin de déterminer la direction à prendre :
-    if (angle > 45.0)
-      chemin[i] = DIR_DROITE;
-    else if (angle < -45.0)
+    if (angle > 1.0f)
       chemin[i] = DIR_GAUCHE;
+    else if (angle < -1.0f)
+      chemin[i] = DIR_DROITE;
     else
       chemin[i] = DIR_DROIT;
 
@@ -440,8 +475,7 @@ void construireChemin(Point* dep, Point* pt)
     a = b;
   }
 
-  // On insère un NULL à la fin si possible :
-  if (sommets < NB_S)
-    chemin[sommets] = NULL;
+  // On insère la fin du parcours si possible :
+  chemin[sommets] = DIR_FIN;
 }
 
