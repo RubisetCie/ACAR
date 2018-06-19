@@ -23,9 +23,10 @@
 #define CPT_C 3       // Le PIN correspondant au capteur C
 #define CPT_D 6       // Le PIN correspondant au capteur D
 
-#define SIL_DR 100    // Le seuil pour avancer droit après une intersection
-#define SIL_CPT 15    // Le seuil d'incrémentation du compteur
-#define SIL_IL 100    // Le seuil de détection d'une intersection en L
+#define SIL_DR 110    // Le seuil pour bouger après une intersection
+#define SIL_CPT 5     // Le seuil d'incrémentation du compteur
+#define SIL_IL 150    // Le seuil de détection d'une intersection en L
+#define SIL_IT 750    // Le seuil de détection d'une intersection en T
 
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
@@ -151,7 +152,7 @@ void trajectoire(boolean R, boolean L)
     avance();
   else if (R && !L)
   {
-    tourneDroite();
+    pivotDroite();
     
     // On détecte si le véhicule se trouve à une intersection en L :
     compteur += SIL_CPT;
@@ -163,7 +164,7 @@ void trajectoire(boolean R, boolean L)
   }
   else if (L && !R)
   {
-    tourneGauche();
+    pivotGauche();
 
     // On détecte si le véhicule se trouve à une intersection en L :
     compteur += SIL_CPT;
@@ -176,10 +177,6 @@ void trajectoire(boolean R, boolean L)
   else if (R && L)
   {
     // Intersection détectée :
-    arrete();
-
-    delay(500);
-    
     intersection();
   }
 }
@@ -230,11 +227,27 @@ void tourneDroite()
 {
   // On inverse les vitesses des moteurs :
   Motor.speed(MOTOR1, AV_MAX);
-  Motor.speed(MOTOR2, AR_MAX);
+  Motor.speed(MOTOR2, AR_MIN);
 }
 
 // Fonction "tourneGauche" permet de tourner vers la gauche :
 void tourneGauche()
+{
+  // On inverse les vitesses des moteurs :
+  Motor.speed(MOTOR1, AR_MIN);
+  Motor.speed(MOTOR2, AV_MAX);
+}
+
+// Fonction "pivotDroite" permet de pivoter vers la droite :
+void pivotDroite()
+{
+  // On inverse les vitesses des moteurs :
+  Motor.speed(MOTOR1, AV_MAX);
+  Motor.speed(MOTOR2, AR_MAX);
+}
+
+// Fonction "pivotGauche" permet de pivoter vers la gauche :
+void pivotGauche()
 {
   // On inverse les vitesses des moteurs :
   Motor.speed(MOTOR1, AR_MAX);
@@ -334,7 +347,7 @@ bool prepareTrajet()
   chemin[1] = DIR_GAUCHE;
   chemin[2] = DIR_FIN;
 
-  // On remet le point courant à zéro :
+  // On met le point courant à zéro :
   ptCourant = 0;
   
   return true;
@@ -358,17 +371,25 @@ void preparePoints()
 // Fonction "intersection" permet de réagir en fonction de l'intersection :
 void intersection()
 {
+  // On arrête le véhicule un moment :
+  arrete();
+
+  delay(SIL_IT);
+    
   // On réagit en fonction de la prochaine étape du chemin :
   switch (chemin[ptCourant+1])
   {
     case DIR_DROIT  : phase = PH_AVANT; avance(); delay(SIL_DR); break;
-    case DIR_GAUCHE : phase = PH_PIVOT; break;
-    case DIR_DROITE : phase = PH_PIVOT; break;
+    case DIR_GAUCHE : phase = PH_PIVOT; tourneGauche(); delay(SIL_DR); break;
+    case DIR_DROITE : phase = PH_PIVOT; tourneDroite(); delay(SIL_DR); break;
     case DIR_FIN    : phase = PH_ARRET; arrete(); break;
   }
 
   // On incrémente le point courant :
   ptCourant++;
+
+  // On remet le compteur à zéro :
+  compteur = 0;
 }
 
 // Fonction "pointSuivant" permet de passer au point suivant :
@@ -383,6 +404,9 @@ void pointSuivant()
 
   // On incrémente le point courant :
   ptCourant++;
+
+  // On remet le compteur à zéro :
+  compteur = 0;
 }
 
 // Fonction "trouverChemin" permet de découvrir le chemin de "dep" vers "dest" :
