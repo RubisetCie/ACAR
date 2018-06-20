@@ -4,8 +4,9 @@
  *  Description : Le fichier principal permettant de diriger le robot
 */
 
-// Inclusion de la librairie :
+// Inclusion des librairie :
 #include "Grove_I2C_Motor_Driver.h"
+#include "VirtualWire.h"
 
 // Déclaration des constantes :
 #define I2C 0x0f      // L'adresse des moteurs "Grove"
@@ -23,7 +24,8 @@
 #define CPT_B 2       // Le PIN correspondant au capteur B (correction gauche)
 #define CPT_C 3       // Le PIN correspondant au capteur C (correction droit)
 #define CPT_D 6       // Le PIN correspondant au capteur D (sécurité droit)
-#define CPT_M 8       // Le PIN correspondant au capteur de distance
+#define CPT_M A0      // Le PIN correspondant au capteur de distance
+#define CPT_EMT 42    // Le PIN correspondant à l'émetteur radio
 
 #define SIL_DRA 285   // Le seuil pour avancer après une intersection
 #define SIL_DRR 95    // Le seuil pour tourner après une intersection
@@ -72,7 +74,40 @@ class Mesure
     float d;              // Distance mesurée
 
     // Constructeur :
-    Mesure(unsigned int dep, unsigned int arr, float mes) : depart(dep), arrivee(arr), d(mes) {}
+    Mesure(unsigned int dep, unsigned int arr, float mes) : depart(dep), arrivee(arr), d(mes)
+    {
+    }
+
+    // Méthode "envoyer" afin d'envoyer la mesure via le protocole "ACAR_RKMR" :
+    void envoyer(unsigned int n)
+    {
+      // On déclare la trame de 16 octets :
+      char trame[16];
+
+      // On déclare les variables locales :
+      unsigned int dep = depart * 5;
+      unsigned int arr = arrivee * 5;
+      float mes = d * 5.0f;
+
+      // On chiffre les données :
+      dep *= dep;   dep -= 10;
+      arr *= arr;   arr -= 10;
+      mes *= mes;   mes -= 10.0f;
+
+      // On remplit le numéro de trame :
+      memcpy(&trame[0], &n, 4);
+
+      // On remplit les numéros des points :
+      memcpy(&trame[4], &dep, 4);
+      memcpy(&trame[8], &arr, 4);
+
+      // On remplit la mesure :
+      memcpy(&trame[12], &mes, 4);
+
+      // On envoie la trame :
+      vw_send((uint8_t*)trame, 16);
+      vw_wait_tx();
+    }
 };
 
 // Déclaration de l'énumération "Phase" permettant de décrire les comportements du robot :
@@ -113,9 +148,11 @@ Phase phase;            // La phase actuelle du robot
 // Fonction "setup" exécutée au lancement :
 void setup()
 {
-  // On initialise les moteurs :
-  Motor.begin(I2C);
+  // On initialise les moteurs et l'émetteur :
   Serial.begin(9600);
+  Motor.begin(I2C);
+  vw_set_tx_pin(CPT_EMT);
+  vw_setup(2000);
 
   // On charge la carte :
   prepareCarte();
@@ -353,6 +390,26 @@ void mesurer(int cpt_M)
 }
 
 /*
+ *  FONCTIONS DE COMMUNICATION
+*/
+
+// Fonction "emettre" permet d'émettre les mesures par liaison radio :
+void emettre()
+{
+  // On émet l'en-tête :
+  vw_send((uint8_t*)"ACAR_RKMR", 10);
+  vw_wait_tx();
+
+  // On envoie successivement chacune des trames :
+  for (register unsigned int i = 0; i < mCourante; i++)
+    mesures[i]->envoyer(i);
+
+  // On communique la fin de transmission :
+  vw_send((uint8_t*)"TRA_FIN", 8);
+  vw_wait_tx();
+}
+
+/*
  *  FONCTIONS PATH-FINDING
 */
 
@@ -491,7 +548,7 @@ void intersection(boolean sec)
       case DIR_DROIT  : phase = PH_AVANT; avance(); break;
       case DIR_GAUCHE : phase = PH_PIVOT; pivotGauche(); delay(SIL_DRP); break;
       case DIR_DROITE : phase = PH_PIVOT; pivotDroite(); delay(SIL_DRP); break;
-      case DIR_FIN    : phase = PH_ARRET; arrete(); break;
+      case DIR_FIN    : phase = PH_ARRET; emettre(); arrete(); break;
     }
   }
   else
@@ -501,7 +558,7 @@ void intersection(boolean sec)
       case DIR_DROIT  : phase = PH_AVANT; avance(); delay(SIL_DRA); break;
       case DIR_GAUCHE : phase = PH_PIVOT; tourneGauche(); delay(SIL_DRR); break;
       case DIR_DROITE : phase = PH_PIVOT; tourneDroite(); delay(SIL_DRR); break;
-      case DIR_FIN    : phase = PH_ARRET; arrete(); break;
+      case DIR_FIN    : phase = PH_ARRET; emettre(); arrete(); break;
     }
   }
 
@@ -521,6 +578,8 @@ void pointSuivant()
   if (chemin[ptCourant+1] == DIR_FIN)
   {
     phase = PH_ARRET;
+
+    emettre();
     arrete();
   }
 
