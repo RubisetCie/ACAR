@@ -12,6 +12,7 @@
 #define I2C 0x0f      // L'adresse des moteurs "Grove"
 
 #define NB_M 32       // Le nombre de mesures possibles
+#define NB_T 20       // Le nombre d'octets dans la trame
 #define NB_S 16       // Le nombre de sommets du graphe
 #define NB_A 4        // Le nombre maximum d'arêtes par sommets
 
@@ -81,10 +82,11 @@ class Mesure
     // Méthode "envoyer" afin d'envoyer la mesure via le protocole "ACAR_RKMR" :
     void envoyer(unsigned int n)
     {
-      // On déclare la trame de 16 octets :
-      uint8_t trame[16];
+      // On déclare la trame :
+      uint8_t trame[NB_T];
 
       // On déclare les variables locales :
+      unsigned int sum = depart + arrivee + int(d);
       unsigned int dep = depart * 5;
       unsigned int arr = arrivee * 5;
       float mes = d * 5.0f;
@@ -104,8 +106,11 @@ class Mesure
       // On remplit la mesure :
       memcpy(&trame[12], &mes, 4);
 
+      // On remplit la somme de contrôle :
+      memcpy(&trame[16], &sum, 4);
+
       // On envoie la trame :
-      vw_send(trame, 16);
+      vw_send(trame, NB_T);
       vw_wait_tx();
     }
 };
