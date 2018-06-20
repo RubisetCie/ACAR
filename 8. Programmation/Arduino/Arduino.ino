@@ -25,9 +25,10 @@
 #define CPT_D 6       // Le PIN correspondant au capteur D (sécurité droit)
 #define CPT_M 8       // Le PIN correspondant au capteur de distance
 
+#define SIL_DRA 285   // Le seuil pour avancer après une intersection
 #define SIL_DRR 95    // Le seuil pour tourner après une intersection
 #define SIL_DRP 1150  // Le seuil pour pivoter après une intersection
-#define SIL_DRA 285   // Le seuil pour avancer après une intersection
+#define SIL_DRI 1300  // Le seuil pour pivoter à l'initialisation
 #define SIL_IR 500    // Le seuil d'attente après une intersection
 #define SIL_SEC 100   // Le seuil de sécurité pour détecter une intersection supplémentaire
 #define SIL_IL 165    // Le seuil de détection d'une intersection en L
@@ -121,8 +122,8 @@ void setup()
     switch (chemin[0])
     {
       case DIR_DROIT  : phase = PH_AVANT; break;
-      case DIR_GAUCHE : phase = PH_PIVOT; tourneGauche(); delay(SIL_IR); break;
-      case DIR_DROITE : phase = PH_PIVOT; tourneDroite(); delay(SIL_IR); break;
+      case DIR_GAUCHE : phase = PH_PIVOT; pivotGauche(); delay(SIL_DRI); break;
+      case DIR_DROITE : phase = PH_PIVOT; pivotDroite(); delay(SIL_DRI); break;
     }
   }
   else
