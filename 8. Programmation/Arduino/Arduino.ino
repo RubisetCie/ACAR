@@ -82,7 +82,7 @@ class Mesure
     void envoyer(unsigned int n)
     {
       // On déclare la trame de 16 octets :
-      char trame[16];
+      uint8_t trame[16];
 
       // On déclare les variables locales :
       unsigned int dep = depart * 5;
@@ -105,7 +105,7 @@ class Mesure
       memcpy(&trame[12], &mes, 4);
 
       // On envoie la trame :
-      vw_send((uint8_t*)trame, 16);
+      vw_send(trame, 16);
       vw_wait_tx();
     }
 };
