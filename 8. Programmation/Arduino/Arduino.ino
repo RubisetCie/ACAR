@@ -10,6 +10,7 @@
 // Déclaration des constantes :
 #define I2C 0x0f      // L'adresse des moteurs "Grove"
 
+#define NB_M 32       // Le nombre de mesures possibles
 #define NB_S 16       // Le nombre de sommets du graphe
 #define NB_A 4        // Le nombre maximum d'arêtes par sommets
 
@@ -19,18 +20,20 @@
 #define AR_MIN -30    // La vitesse minimale des moteurs en arrière (négative)
 
 #define CPT_A 7       // Le PIN correspondant au capteur A (sécurité gauche)
-#define CPT_B 2       // Le PIN correspondant au capteur B
-#define CPT_C 3       // Le PIN correspondant au capteur C
+#define CPT_B 2       // Le PIN correspondant au capteur B (correction gauche)
+#define CPT_C 3       // Le PIN correspondant au capteur C (correction droit)
 #define CPT_D 6       // Le PIN correspondant au capteur D (sécurité droit)
+#define CPT_M 8       // Le PIN correspondant au capteur de distance
 
 #define SIL_DRR 95    // Le seuil pour tourner après une intersection
-#define SIL_DRP 1100  // Le seuil pour pivoter après une intersection
+#define SIL_DRP 1150  // Le seuil pour pivoter après une intersection
 #define SIL_DRA 285   // Le seuil pour avancer après une intersection
 #define SIL_IR 500    // Le seuil d'attente après une intersection
 #define SIL_SEC 100   // Le seuil de sécurité pour détecter une intersection supplémentaire
-#define SIL_CPT 4     // Le seuil d'incrémentation du compteur
 #define SIL_IL 165    // Le seuil de détection d'une intersection en L
 #define SIL_IT 50     // Le seuil de détection d'une intersection en T
+#define SIL_CPT 4     // Le seuil d'incrémentation du compteur
+#define VITESSE 400   // La vitesse approximative du véhicule (mètres/intérations)
 
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
@@ -53,6 +56,22 @@ class Point
     }
 };
 
+// Déclaration de la classe "Mesure" représentant un point en 2D :
+class Mesure
+{
+  public :
+    Point* arete[NB_A];   // Les adresses des points accessibles (arêtes du graphe)
+    Point* parent;        // L'adresse du point précédent dans la construction de chemin
+    
+    unsigned int depart;  // Point de départ de la mesure
+    unsigned int arrivee; // Point d'arrivée de la mesure
+
+    float d;              // Distance mesurée
+
+    // Constructeur :
+    Mesure(unsigned int dep, unsigned int arr, float mes) : depart(dep), arrivee(arr), d(mes) {}
+};
+
 // Déclaration de l'énumération "Phase" permettant de décrire les comportements du robot :
 enum Phase
 {
@@ -71,6 +90,7 @@ enum Direction
 };
 
 // Déclaration des variables globales :
+Mesure* mesures[NB_M];  // Les mesures prises successivement
 Point* graphe[NB_S];    // Le graphe consitué de sommets et d'arrêtes (points)
 Direction chemin[NB_S]; // Le chemin à parcourir point par point
 
@@ -118,20 +138,25 @@ void setup()
 void loop()
 {
   // On déclare les variables locales :
-  boolean cpt_A;        // Capteur côté droit
-  boolean cpt_B;        // Capteur arrière droit
-  boolean cpt_C;        // Capteur arrière gauche
-  boolean cpt_D;        // Capteur côté gauche
+  boolean cpt_A;        // Capteur côté gauche
+  boolean cpt_B;        // Capteur avant gauche
+  boolean cpt_C;        // Capteur avant droit
+  boolean cpt_D;        // Capteur côté droit
+  
+  int cpt_M;            // Capteur de distance
 
   if (phase != PH_ARRET)
   {
     // On lit les capteurs :
-    lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D);
+    lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D, cpt_M);
   
     // On effectue les mouvements en fonction de la phase du véhicule :
     switch (phase)
     {
-      case PH_AVANT : trajectoire(cpt_B, cpt_C, cpt_D, cpt_A); break;
+      case PH_AVANT :
+        trajectoire(cpt_B, cpt_C, cpt_D, cpt_A);  // Corrige la trajectoire
+        mesurer(cpt_M);                           // Effectue les mesures
+        break;
       case PH_PIVOT : pivot(cpt_B, cpt_C); break;
     }
 
@@ -149,12 +174,16 @@ void loop()
 */
 
 // Fonction "lectureCapteurs" permet de lire l'état des capteurs :
-void lectureCapteurs(boolean& A, boolean& B, boolean& C, boolean& D)
+inline void lectureCapteurs(boolean& A, boolean& B, boolean& C, boolean& D, int& M)
 {
+  // Capteurs TOR :
   A = digitalRead(CPT_A) == HIGH ? true : false;
   B = digitalRead(CPT_B) == HIGH ? true : false;
   C = digitalRead(CPT_C) == HIGH ? true : false;
   D = digitalRead(CPT_D) == HIGH ? true : false;
+
+  // Capteur "analogique" :
+  M = analogRead(CPT_M);
 }
 
 /*
@@ -162,7 +191,7 @@ void lectureCapteurs(boolean& A, boolean& B, boolean& C, boolean& D)
 */
 
 // Fonction "trajectoire" permet d'exécuter les déplacements en fonction des capteurs B et C :
-void trajectoire(boolean R, boolean L, boolean RS, boolean LS)
+inline void trajectoire(boolean R, boolean L, boolean RS, boolean LS)
 {
   if (!R && !L)
     avance();
@@ -287,11 +316,21 @@ void pivotGauche()
 }
 
 /*
+ *  FONCTIONS DE MESURE
+*/
+
+// Fonction "mesurer" permet de prendre les mesures grâce au capteur de distance :
+inline void mesurer(int cpt_M)
+{
+  
+}
+
+/*
  *  FONCTIONS PATH-FINDING
 */
 
 // Fonction "prepareCarte" permet de charger la carte dans la mémoire :
-void prepareCarte()
+inline void prepareCarte()
 {
   // Remplit la carte des points (sommets du graphe) :
   graphe[0]  = new Point(0, 0);
@@ -374,8 +413,11 @@ void prepareCarte()
 // Fonction "prepareTrajet" permet de construire un chemin par défaut pour la découverte :
 bool prepareTrajet()
 {
+  // On met le point courant à zéro :
+  ptCourant = 0;
+  
   // On construit le chemin (exemple) :
-  chemin[0] = DIR_DROIT;
+  /*chemin[0] = DIR_DROIT;
   chemin[1] = DIR_DROIT;
   chemin[2] = DIR_DROIT;
   chemin[3] = DIR_DROITE;
@@ -384,14 +426,14 @@ bool prepareTrajet()
   chemin[6] = DIR_DROIT;
   chemin[7] = DIR_FIN;
 
-  // On met le point courant à zéro :
-  ptCourant = 0;
-  
-  return true;
+  return true;*/
+
+  // On construit le chemin :
+  return trouverChemin(graphe[0], graphe[8]);
 }
 
 // Fonction "preparePoints" permet de vider les parents en vue d'une découverte de chemin :
-void preparePoints()
+inline void preparePoints()
 {
   // On vide les données :
   for (register unsigned int i = 0; i < NB_S; i++)
