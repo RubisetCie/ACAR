@@ -27,13 +27,15 @@
 
 #define SIL_DRA 285   // Le seuil pour avancer après une intersection
 #define SIL_DRR 95    // Le seuil pour tourner après une intersection
-#define SIL_DRP 1150  // Le seuil pour pivoter après une intersection
+#define SIL_DRP 1050  // Le seuil pour pivoter après une intersection
 #define SIL_DRI 1300  // Le seuil pour pivoter à l'initialisation
 #define SIL_IR 500    // Le seuil d'attente après une intersection
 #define SIL_SEC 100   // Le seuil de sécurité pour détecter une intersection supplémentaire
 #define SIL_IL 165    // Le seuil de détection d'une intersection en L
 #define SIL_IT 50     // Le seuil de détection d'une intersection en T
 #define SIL_CPT 4     // Le seuil d'incrémentation du compteur
+#define SIL_MES 512   // Le seuil du capteur de distance
+#define SIL_TPS 5000  // Le seuil de validation de mesure
 #define VITESSE 400   // La vitesse approximative du véhicule (mètres/intérations)
 
 // Déclaration de la classe "Point" représentant un point en 2D :
@@ -96,8 +98,10 @@ Point* graphe[NB_S];    // Le graphe consitué de sommets et d'arrêtes (points)
 Direction chemin[NB_S]; // Le chemin à parcourir point par point
 
 unsigned int ptCourant; // Point sur lequel le robot se trouve
+unsigned int mCourante; // Mesure courante effectuée
 unsigned int cpL;       // Compteur pour détecter une intersection en L
 unsigned int cpI;       // Compteur pour détecter une intersection non-détectée
+unsigned int temps;     // Temps durant lequel la mesure est effectuée
 float angleCourant;     // Angle actuel du robot
 
 Phase phase;            // La phase actuelle du robot
@@ -132,6 +136,7 @@ void setup()
   // On initialise les variables globales :
   cpL = 0;
   cpI = 0;
+  temps = 0;
   angleCourant = 0.0f;
 }
 
@@ -321,9 +326,30 @@ void pivotGauche()
 */
 
 // Fonction "mesurer" permet de prendre les mesures grâce au capteur de distance :
-inline void mesurer(int cpt_M)
+void mesurer(int cpt_M)
 {
-  
+  if (cpt_M < SIL_MES)
+  {
+    // On incrémente le chronomètre pour mesurer le temps :
+    temps++;
+  }
+  else
+  {
+    // On teste si les mesures ne sont pas pleines :
+    if (mCourante >= 32)
+      return;
+      
+    // On teste si le temps est valide :
+    if (temps == 0 || temps > SIL_TPS)
+      return;
+
+    // On calcule la distance :
+    mesures[mCourante] = new Mesure(ptCourant, ptCourant + 1, temps * VITESSE);
+    mCourante++;
+
+    // On remet le chronomètre à zéro :
+    temps = 0;
+  }
 }
 
 /*
@@ -414,8 +440,9 @@ inline void prepareCarte()
 // Fonction "prepareTrajet" permet de construire un chemin par défaut pour la découverte :
 bool prepareTrajet()
 {
-  // On met le point courant à zéro :
+  // On met le point courant et la mesure courante à zéro :
   ptCourant = 0;
+  mCourante = 0;
   
   // On construit le chemin (exemple) :
   /*chemin[0] = DIR_DROIT;
@@ -484,6 +511,7 @@ void intersection(boolean sec)
   // On initialise les compteurs :
   cpL = 0;
   cpI = SIL_SEC;
+  temps = 0;
 }
 
 // Fonction "pointSuivant" permet de passer au point suivant :
@@ -499,8 +527,9 @@ void pointSuivant()
   // On incrémente le point courant :
   ptCourant++;
 
-  // On remet le compteur à zéro :
+  // On remet les compteurs à zéro :
   cpL = 0;
+  temps = 0;
 }
 
 // Fonction "trouverChemin" permet de découvrir le chemin de "dep" vers "dest" :
