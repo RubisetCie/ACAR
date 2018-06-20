@@ -25,7 +25,7 @@
 #define CPT_C 3       // Le PIN correspondant au capteur C (correction droit)
 #define CPT_D 6       // Le PIN correspondant au capteur D (sécurité droit)
 #define CPT_M A0      // Le PIN correspondant au capteur de distance
-#define CPT_EMT 42    // Le PIN correspondant à l'émetteur radio
+#define CPT_EMT 4     // Le PIN correspondant à l'émetteur radio
 
 #define SIL_DRA 285   // Le seuil pour avancer après une intersection
 #define SIL_DRR 95    // Le seuil pour tourner après une intersection
@@ -36,9 +36,9 @@
 #define SIL_IL 165    // Le seuil de détection d'une intersection en L
 #define SIL_IT 50     // Le seuil de détection d'une intersection en T
 #define SIL_CPT 4     // Le seuil d'incrémentation du compteur
-#define SIL_MES 512   // Le seuil du capteur de distance
+#define SIL_MES 280   // Le seuil du capteur de distance
 #define SIL_TPS 5000  // Le seuil de validation de mesure
-#define VITESSE 400   // La vitesse approximative du véhicule (mètres/intérations)
+#define VITESSE 400   // La vitesse approximative du véhicule (centimètres/intérations)
 
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
@@ -158,7 +158,7 @@ void setup()
   prepareCarte();
 
   // On prépare le trajet et on règle la phase initiale :
-  if (prepareTrajet())
+  /*if (prepareTrajet())
   {
     switch (chemin[0])
     {
@@ -168,7 +168,9 @@ void setup()
     }
   }
   else
-    phase = PH_ARRET;
+    phase = PH_ARRET;*/
+
+  phase = PH_ARRET;
 
   // On initialise les variables globales :
   cpL = 0;
@@ -210,6 +212,11 @@ void loop()
     if (cpI > 0)
       cpI--;
   }
+  
+  //vw_send((uint8_t*)"Hello world", 12);
+  Serial.println(analogRead(CPT_M));
+
+  //delay(1000);
 }
 
 /*
