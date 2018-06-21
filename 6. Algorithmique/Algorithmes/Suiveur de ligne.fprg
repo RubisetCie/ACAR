@@ -4,9 +4,10 @@
         <attribute name="name" value=""/>
         <attribute name="authors" value="rubisetcie"/>
         <attribute name="about" value=""/>
-        <attribute name="saved" value="2018-06-18 10:37:33 "/>
+        <attribute name="saved" value="2018-06-20 04:16:44 "/>
         <attribute name="created" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xMTsiMDE6MDM6MTAgIjszMjk5"/>
         <attribute name="edited" value="cnViaXNldGNpZTtERVNLVE9QLTNJRkY1Tkc7MjAxOC0wNi0xODsiMTA6Mzc6MzMgIjsxNzszNDgx"/>
+        <attribute name="edited" value="ZGFya3I7TEFQVE9QLTc4QlYzSENTOzIwMTgtMDYtMjA7IjA0OjE2OjQ0ICI7MjsyODc5"/>
     </attributes>
     <function name="Main" type="None" variable="">
         <parameters/>
@@ -14,8 +15,8 @@
             <comment text="D&#233;claration des variables des&#13;&#10;capteurs :"/>
             <declare name="A" type="Boolean" array="False" size=""/>
             <declare name="B" type="Boolean" array="False" size=""/>
-            <declare name="C" type="Boolean" array="False" size=""/>
-            <declare name="D" type="Boolean" array="False" size=""/>
+            <comment text="Initialisation du compteur pour les intersections&#13;&#10;"/>
+            <declare name="compteur" type="Integer" array="False" size=""/>
             <comment text="D&#233;claration de la variable li&#233;es aux points :"/>
             <declare name="Point" type="Integer" array="False" size=""/>
             <declare name="Destination" type="Integer" array="False" size=""/>
@@ -23,24 +24,50 @@
             <while expression="">
                 <comment text="Lecture des capteurs :"/>
                 <call expression="LectureCapteur()"/>
-                <if expression="B">
+                <if expression="a and b = 0">
                     <then>
-                        <comment text="Correction vers la droite :"/>
-                        <call expression="CorrigeDroite()"/>
+                        <comment text="avance tout droit "/>
+                        <call expression="avance()"/>
                     </then>
                     <else>
-                        <if expression="C">
+                        <if expression="a = 1 and b = 0">
                             <then>
-                                <comment text="Correction vers la gauche :"/>
-                                <call expression="CorrigeGauche()"/>
-                            </then>
-                            <else>
-                                <if expression="A or D">
+                                <comment text="Correction vers la droite:"/>
+                                <call expression="tourneDroite()"/>
+                                <assign variable="compteur" expression="compteur + 15"/>
+                                <if expression="compteur &gt; 100">
                                     <then>
-                                        <comment text="On se dirige vers le point suivant :"/>
+                                        <comment text="detecte une intersection"/>
                                         <call expression="PointSuivant()"/>
+                                        <assign variable="compteur" expression="0"/>
                                     </then>
                                     <else/>
+                                </if>
+                            </then>
+                            <else>
+                                <if expression="a = 0 and b = 1">
+                                    <then>
+                                        <comment text="correction vers la gauche&#13;&#10;"/>
+                                        <call expression="tourneGauche"/>
+                                        <assign variable="compteur" expression="compteur + 15"/>
+                                        <if expression="compteur &gt; 100">
+                                            <then>
+                                                <comment text="detecte une intersection"/>
+                                                <call expression="PointSuivant()"/>
+                                                <assign variable="compteur" expression="0"/>
+                                            </then>
+                                            <else/>
+                                        </if>
+                                    </then>
+                                    <else>
+                                        <if expression="a and b = 1">
+                                            <then>
+                                                <comment text="la voiture s'arr&#234;te de bouger "/>
+                                                <call expression="arrete()"/>
+                                            </then>
+                                            <else/>
+                                        </if>
+                                    </else>
                                 </if>
                             </else>
                         </if>
