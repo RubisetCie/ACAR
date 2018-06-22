@@ -30,16 +30,17 @@
 
 #define SIL_DRA 285   // Le seuil pour avancer après une intersection
 #define SIL_DRR 95    // Le seuil pour tourner après une intersection
-#define SIL_DRP 1050  // Le seuil pour pivoter après une intersection
+#define SIL_DRP 1000  // Le seuil pour pivoter après une intersection
 #define SIL_DRI 1300  // Le seuil pour pivoter à l'initialisation
 #define SIL_IR 500    // Le seuil d'attente après une intersection
 #define SIL_SEC 100   // Le seuil de sécurité pour détecter une intersection supplémentaire
 #define SIL_IL 165    // Le seuil de détection d'une intersection en L
 #define SIL_IT 50     // Le seuil de détection d'une intersection en T
 #define SIL_CPT 4     // Le seuil d'incrémentation du compteur
-#define SIL_MES 280   // Le seuil du capteur de distance
-#define SIL_TPS 5000  // Le seuil de validation de mesure
-#define VITESSE 400   // La vitesse approximative du véhicule (centimètres/intérations)
+#define SIL_MES 230   // Le seuil du capteur de distance
+#define SIL_TPSP 5000 // Le seuil de validation maximum de mesure
+#define SIL_TPSM 100  // Le seuil de validation minimum de mesure
+#define VITESSE 0.003 // La vitesse approximative du véhicule (centimètres/intérations)
 
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
@@ -80,10 +81,10 @@ class Mesure
     }
 
     // Méthode "envoyer" afin d'envoyer la mesure via le protocole "ACAR_RKMR" :
-    void envoyer(unsigned int n)
+    void envoyer(uint8_t* trame, unsigned int n)
     {
       // On déclare la trame :
-      uint8_t trame[NB_T];
+      //uint8_t trame[NB_T];
 
       // On déclare les variables locales :
       unsigned int sum = depart + arrivee + int(d);
@@ -108,10 +109,6 @@ class Mesure
 
       // On remplit la somme de contrôle :
       memcpy(&trame[16], &sum, 4);
-
-      // On envoie la trame :
-      vw_send(trame, NB_T);
-      vw_wait_tx();
     }
 };
 
@@ -141,7 +138,7 @@ unsigned int ptCourant; // Point sur lequel le robot se trouve
 unsigned int mCourante; // Mesure courante effectuée
 unsigned int cpL;       // Compteur pour détecter une intersection en L
 unsigned int cpI;       // Compteur pour détecter une intersection non-détectée
-unsigned int temps;     // Temps durant lequel la mesure est effectuée
+unsigned long temps;    // Temps durant lequel la mesure est effectuée
 float angleCourant;     // Angle actuel du robot
 
 Phase phase;            // La phase actuelle du robot
@@ -163,7 +160,7 @@ void setup()
   prepareCarte();
 
   // On prépare le trajet et on règle la phase initiale :
-  /*if (prepareTrajet())
+  if (prepareTrajet())
   {
     switch (chemin[0])
     {
@@ -173,15 +170,13 @@ void setup()
     }
   }
   else
-    phase = PH_ARRET;*/
-
-  phase = PH_ARRET;
+    phase = PH_ARRET;
 
   // On initialise les variables globales :
   cpL = 0;
   cpI = 0;
   temps = 0;
-  angleCourant = 0.0f;
+  angleCourant = PI * 2.0f;
 }
 
 // Fonction "loop" exécutée continuellement :
@@ -195,7 +190,7 @@ void loop()
   
   int cpt_M;            // Capteur de distance
 
-  if (phase != PH_ARRET)
+  /*if (phase != PH_ARRET)
   {
     // On lit les capteurs :
     lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D, cpt_M);
@@ -216,12 +211,10 @@ void loop()
 
     if (cpI > 0)
       cpI--;
-  }
-  
-  //vw_send((uint8_t*)"Hello world", 12);
-  Serial.println(analogRead(CPT_M));
+  }*/
 
-  //delay(1000);
+  lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D, cpt_M);
+  mesurer(cpt_M);
 }
 
 /*
@@ -377,19 +370,19 @@ void pivotGauche()
 // Fonction "mesurer" permet de prendre les mesures grâce au capteur de distance :
 void mesurer(int cpt_M)
 {
-  if (cpt_M < SIL_MES)
+  // On teste si les mesures ne sont pas pleines :
+  if (mCourante >= NB_M)
+    return;
+      
+  if (cpt_M > SIL_MES)
   {
     // On incrémente le chronomètre pour mesurer le temps :
     temps++;
   }
   else
   {
-    // On teste si les mesures ne sont pas pleines :
-    if (mCourante >= 32)
-      return;
-      
     // On teste si le temps est valide :
-    if (temps == 0 || temps > SIL_TPS)
+    if (temps < SIL_TPSM || temps > SIL_TPSP)
       return;
 
     // On calcule la distance :
@@ -408,16 +401,22 @@ void mesurer(int cpt_M)
 // Fonction "emettre" permet d'émettre les mesures par liaison radio :
 void emettre()
 {
-  // On émet l'en-tête :
-  vw_send((uint8_t*)"ACAR_RKMR", 10);
-  vw_wait_tx();
+  // On déclare les variables locales :
+  uint8_t segment[658];     // Ensemble du segment à transmettre (658 octets) :
+  register unsigned int i;
+  
+  // On insère l'en-tête :
+  memcpy(&segment[0], (uint8_t*)"ACAR_RKMR", 10);
 
-  // On envoie successivement chacune des trames :
+  // On insère successivement chacune des trames :
   for (register unsigned int i = 0; i < mCourante; i++)
-    mesures[i]->envoyer(i);
+    mesures[i]->envoyer(&segment[10 + (i * 20)], i);
 
-  // On communique la fin de transmission :
-  vw_send((uint8_t*)"TRA_FIN", 8);
+  // On insère la fin de transmission :
+  memcpy(&segment[10 + (i * 20)], (uint8_t*)"TRA_FIN", 8);
+
+  // On transmet le segment :
+  vw_send((uint8_t*)&mesures[0]->d, 18 + (i * 20));
   vw_wait_tx();
 }
 
@@ -514,16 +513,10 @@ bool prepareTrajet()
   mCourante = 0;
   
   // On construit le chemin (exemple) :
-  /*chemin[0] = DIR_DROIT;
-  chemin[1] = DIR_DROIT;
-  chemin[2] = DIR_DROIT;
-  chemin[3] = DIR_DROITE;
-  chemin[4] = DIR_DROITE;
-  chemin[5] = DIR_DROITE;
-  chemin[6] = DIR_DROIT;
-  chemin[7] = DIR_FIN;
+  chemin[0] = DIR_DROIT;
+  chemin[1] = DIR_FIN;
 
-  return true;*/
+  return true;
 
   // On construit le chemin :
   return trouverChemin(graphe[0], graphe[8]);

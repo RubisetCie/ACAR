@@ -9,6 +9,7 @@
 package view;
 
 // Inclusion des fichiers :
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Image;
 import javax.swing.JButton;
@@ -23,12 +24,12 @@ public class Frame extends JFrame
         super();
         
         // Création de la toile :
-        this.panel = new Panel(circuit);
+        this.image = new Panel(circuit);
+        this.image.setLayout(new BorderLayout());
         
         // Création des boutons :
-        this.go = new JButton();
-        this.go.setText("Yolo");
-        //this.go.setVisible(true);
+        this.start = new JButton("Start");
+        this.stop = new JButton("Stop");
         
         // Paramétrage de la fenêtre :
         this.setTitle("ACAR");
@@ -39,13 +40,17 @@ public class Frame extends JFrame
 	this.setContentPane(this.panel);
 	this.setBackground(Color.WHITE);
         
-        this.add(this.go, BorderLayout.WEST);
-	
+        this.panel.add(this.start, BorderLayout.EAST);
+        this.panel.add(this.stop, BorderLayout.EAST);
+        	
 	this.setVisible(true);
     }
     
     // Déclaration des attributs :
-    private final Panel panel;      // La toile de fond
+    private final Panel image;      // La toile de fond
     
-    private final JButton go;       // Le bouton pour aller à un point
+    private final Toolbar toolbar;  // La barre de commande
+    
+    private final JButton start;    // Le bouton pour démarrer la machine
+    private final JButton stop;     // Le bouton pour arrêter la machine
 }
