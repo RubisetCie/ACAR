@@ -10,20 +10,20 @@ package view;
 
 // Inclusion des fichiers :
 import java.awt.Color;
+import java.awt.Image;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import model.Graphe;
 
 public class Frame extends JFrame
 {
     // Constructeur :
-    public Frame(final Graphe graphe)
+    public Frame(final Image circuit)
     {
         // Appel du constructeur supérieur :
         super();
         
         // Création de la toile :
-        this.panel = new Panel(graphe);
+        this.panel = new Panel(circuit);
         
         // Création des boutons :
         this.go = new JButton();
@@ -33,13 +33,13 @@ public class Frame extends JFrame
         // Paramétrage de la fenêtre :
         this.setTitle("ACAR");
         this.setResizable(false);
-        this.setSize(960, 480);
+        this.setSize(960, 560);
 	this.setLocationRelativeTo(null);
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setContentPane(this.panel);
 	this.setBackground(Color.WHITE);
         
-        //this.add(this.go, BorderLayout.WEST);
+        this.add(this.go, BorderLayout.WEST);
 	
 	this.setVisible(true);
     }

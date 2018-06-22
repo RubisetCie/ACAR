@@ -8,15 +8,15 @@
 // Déclaration du paquetage :
 package view;
 
-import model.Graphe;
+import java.awt.Image;
 
 public class View
 {
     // Constructeur :
-    public View(final Graphe graphe)
+    public View(final Image circuit)
     {
         // Création de la fenêtre :
-        this.frame = new Frame(graphe);
+        this.frame = new Frame(circuit);
     }
     
     // Déclaration des attributs :

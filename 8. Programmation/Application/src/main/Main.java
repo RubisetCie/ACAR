@@ -19,7 +19,7 @@ public abstract class Main
     {
         // On instancie les modules :
         final Model model = new Model();
-        final View view = new View(model.getGraphe());
+        final View view = new View(model.getCircuit());
         
         // On instancie le contrôleur :
         final Controller controller = new Controller(model, view);

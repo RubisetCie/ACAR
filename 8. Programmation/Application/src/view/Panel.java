@@ -13,15 +13,15 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import javax.swing.JPanel;
-import model.Graphe;
 
 public class Panel extends JPanel
 {
     // Constructeur :
-    public Panel(final Graphe graphe)
+    public Panel(final Image circuit)
     {
-        this.graphe = graphe;
+        this.circuit = circuit;
     }
     
     // Permet de dessiner dans la fenêtre :
@@ -36,9 +36,9 @@ public class Panel extends JPanel
         g2.setColor(Color.BLACK);
         
         // On dessine le graphe :
-        this.graphe.dessiner(g2);
+        g2.drawImage(this.circuit, 16, 16, this);
     }
     
     // Déclaration des attributs :
-    private final Graphe graphe;
+    private final Image circuit;
 }
