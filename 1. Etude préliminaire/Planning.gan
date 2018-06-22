@@ -60,12 +60,12 @@ Il consiste en la création d'un véhicule automatisé capable d'analyser son en
         <task id="13" name="Algorithmique" meeting="false" start="2018-06-08" duration="13" complete="100" expand="true">
             <task id="14" name="Découverte de chemin" color="#99ff66" meeting="false" start="2018-06-08" duration="13" complete="100" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
         </task>
-        <task id="9" name="Réseau" meeting="false" start="2018-06-12" duration="11" complete="0" expand="true">
-            <task id="10" name="Liaison radio" color="#66ff99" meeting="false" start="2018-06-12" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
+        <task id="9" name="Réseau" meeting="false" start="2018-06-12" duration="11" complete="87" expand="true">
+            <task id="10" name="Liaison radio" color="#66ff99" meeting="false" start="2018-06-12" duration="4" complete="100" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
                 <depend id="11" type="2" difference="0" hardness="Strong"/>
             </task>
-            <task id="11" name="Communication" color="#66ffcc" meeting="false" start="2018-06-18" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
-            <task id="12" name="Protocole" color="#66ccff" meeting="false" start="2018-06-12" duration="11" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="11" name="Communication" color="#66ffcc" meeting="false" start="2018-06-18" duration="4" complete="40" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
+            <task id="12" name="Protocole" color="#66ccff" meeting="false" start="2018-06-12" duration="11" complete="100" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true"/>
         </task>
         <task id="15" name="Programmation" meeting="false" start="2018-06-08" duration="13" complete="0" expand="true">
             <task id="16" name="Interface de contrôle" color="#6699ff" meeting="false" start="2018-06-12" duration="4" complete="0" thirdDate="2018-06-08" thirdDate-constraint="0" expand="true">
