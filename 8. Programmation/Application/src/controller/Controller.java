@@ -14,6 +14,8 @@ import view.View;
 
 public class Controller
 {
+    static final String PORT = "COM5";
+    
     // Constructeur :
     public Controller(final Model model, final View view)
     {

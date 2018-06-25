@@ -11,29 +11,40 @@
 #define CPT_REC A0    // Le PIN correspondant au recepteur
 #define NB_M 22       // Le nombre de mesures possibles
 
-// Déclaration de la structure "Trame" représentant une trame de données :
-struct __attribute__((packed)) Trame
+// Déclaration de la classe "Trame" représentant une trame de données :
+class __attribute__((packed)) Trame
 {
   public :
+    // Permet de déchiffrer et vérifier une trame :
+    bool decoder()
+    {
+      // On effectue la série d'opérations inverses :
+      dep += 10;    dep = sqrt(dep); dep /= 5;
+      arr += 10;    arr = sqrt(arr); arr /= 5;
+      mes += 10.0f; mes = sqrt(mes); mes /= 5.0f;
+    
+      // On contrôle la somme :
+      return sum == dep + arr;
+    }
+
     byte n;             // Le numéro de trame
-    byte dep;           // Le point de départ
-    byte arr;           // Le point d'arrivée
+    unsigned int dep;   // Le point de départ
+    unsigned int arr;   // Le point d'arrivée
 
     float mes;          // La mesure
 
     unsigned short sum; // La somme de contrôle
 };
 
-// Déclaration de la structure "Segment" représentant le segment reçu :
-struct __attribute__((packed)) Segment
+// Déclaration de l'énumération "Phase" permettant de décrire les phases de réception :
+enum Phase
 {
-  public :
-    char debut[10];     // L'en-tête de 10 octets
-
-    Trame trames[NB_M]; // L'ensemble des trames constituant les données
-    
-    char fin[8];        // Le signal de fin de 8 octets
+  PH_ATTENTE,
+  PH_LECTURE
 };
+
+// Déclaration des variables globales :
+Phase phase;            // La phase actuelle du robot
 
 /*
  *  FONCTIONS NATIVES ARDUINO
@@ -48,6 +59,9 @@ void setup()
   vw_set_rx_pin(CPT_REC);
   vw_setup(2000);
 
+  // On initialise les variables globales :
+  phase = PH_ATTENTE;
+
   // On démarre l'écoute :
   vw_rx_start();
 }
@@ -56,48 +70,36 @@ void setup()
 void loop()
 {
   // On déclare les variables locales :
-  Segment segment;
-  uint8_t len = sizeof(Segment);
-
-  byte num;
-  byte depart;
-  byte arrivee;
-  float mesure;
-  unsigned short sum;
+  Trame trame;                      // Trame transmise (9 octets)
+  char buf[VW_MAX_MESSAGE_LEN];     // Tampon mémoire pour la réception
+  uint8_t len = VW_MAX_MESSAGE_LEN;
 
   // Lorsqu'un message est reçu :
-  //vw_wait_rx();
-  
-  if (vw_get_message((uint8_t*)&segment, &len))
+  vw_wait_rx();
+  if (vw_get_message((uint8_t*)buf, &len))
   {
-    Serial.println(len);
-    Serial.println(segment.debut);
-    
-    // On vérifie si la transmission nous appartient :
-    /*if (strcmp((char*)&buf[0], "ACAR_RKMR") == 0)
-      Serial.println("Recieved");
-    else
-      Serial.println("Not our : ");*/
-      
-    /*{
-      if (strcmp((char*)buf, "TRA_FIN") != 0)
+    // On vérifie si la longueur du message est conséquente :
+    if (len >= 8)
+    {
+      // Si l'on est en lecture, on lit les trames :
+      if (phase == PH_LECTURE)
       {
-        // Lecture des données :
-        num = (unsigned int)buf[0];
-        depart = (unsigned int)buf[4];
-        arrivee = (unsigned int)buf[8];
-        mesure = (float)buf[12];
-        sum = (unsigned int)buf[16];
+        // On copie le tampon vers la structure :
+        memcpy(&trame, buf, len);
 
-        Serial.println(num);
-        Serial.println(depart);
-        Serial.println(arrivee);
-        Serial.println(mesure);
-        Serial.println(sum);
-        Serial.println();
+        if (trame.decoder())
+          Serial.println(trame.mes);
+        else
+          Serial.println("Somme non-controlee");
       }
-      else
+        
+      // On vérifie si la transmission nous appartient :
+      if (strcmp(buf, "ACAR_RKMR") == 0)
+        phase = PH_LECTURE;
+      // On vérifie si la transmission est terminée :
+      else if (strcmp(buf, "TRA_FIN") == 0)
         phase = PH_ATTENTE;
-    }*/
+    }
   }
 }
+

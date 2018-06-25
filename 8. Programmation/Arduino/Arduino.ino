@@ -42,35 +42,26 @@
 #define SIL_TPSM 100  // Le seuil de validation minimum de mesure
 #define VITESSE 0.003 // La vitesse approximative du véhicule (centimètres/intérations)
 
-// Déclaration de la structure "Trame" représentant une trame de données :
-struct __attribute__((packed)) Trame
+// Déclaration de la classe "Trame" représentant une trame de données :
+class __attribute__((packed)) Trame
 {
   public :
+    // Permet de chiffrer les trames :
+    void encoder()
+    {
+      // On chiffre les données numériques selon le protocole :
+      dep *= 5;    dep *= dep;  dep -= 10;
+      arr *= 5;    arr *= arr;  arr -= 10;
+      mes *= 5.0f; mes *= mes;  mes -= 10.0f;
+    }
+  
     byte n;             // Le numéro de trame
-    byte dep;           // Le point de départ
-    byte arr;           // Le point d'arrivée
+    unsigned int dep;   // Le point de départ
+    unsigned int arr;   // Le point d'arrivée
 
     float mes;          // La mesure
 
     unsigned short sum; // La somme de contrôle
-};
-
-struct __attribute__((packed)) Test
-{
-  public :
-    char test[10];
-    char fin[8];
-};
-
-// Déclaration de la structure "Segment" représentant le segment envoyé :
-struct __attribute__((packed)) Segment
-{
-  public :
-    char debut[10];     // L'en-tête de 10 octets
-
-    Trame trames[NB_M]; // L'ensemble des trames constituant les données
-    
-    char fin[8];        // Le signal de fin de 8 octets
 };
 
 // Déclaration de la classe "Point" représentant un point en 2D :
@@ -114,22 +105,14 @@ class Mesure
     // Méthode "envoyer" afin d'envoyer la mesure via le protocole "ACAR_RKMR" :
     void envoyer(Trame* trame, unsigned int n)
     {
-      // On déclare les variables locales :
-      unsigned short sum = depart + arrivee + int(d);
-      byte dep = depart * 5;
-      byte arr = arrivee * 5;
-      float mes = d * 5.0f;
+      trame->n = n;                           // On remplit le numéro de trame
+      trame->dep = depart;                    // On remplit le numéro du point de départ
+      trame->arr = arrivee;                   // On remplit le numéro du point d'arrivée
+      trame->mes = d;                         // On remplit la mesure
+      trame->sum = depart + arrivee;          // On remplit la somme de contrôle
 
-      // On chiffre les données :
-      dep *= dep;   dep -= 10;
-      arr *= arr;   arr -= 10;
-      mes *= mes;   mes -= 10.0f;
-      
-      trame->n = n;       // On remplit le numéro de trame
-      trame->dep = dep;   // On remplit le numéro du point de départ
-      trame->arr = arr;   // On remplit le numéro du point d'arrivée
-      trame->mes = mes;   // On remplit la mesure
-      trame->sum = sum;   // On remplit la somme de contrôle
+      // On chiffre la trame :
+      trame->encoder();
     }
 };
 
@@ -240,8 +223,6 @@ void loop()
     if (cpI > 0)
       cpI--;
   }*/
-
-  delay(2000);
 }
 
 /*
@@ -429,32 +410,24 @@ void mesurer(int cpt_M)
 void emettre()
 {
   // On déclare les variables locales :
-  Segment segment;          // Ensemble du segment à transmettre (216 octets) :
-  register unsigned int i;
+  Trame trame;              // Trame à transmettre (9 octets)
   
-  // On insère l'en-tête :
-  memcpy(segment.debut, "ACAR_RKMR", 10);
-  /*vw_send((uint8_t*)"ACAR_RKMR", 10);
+  // On envoie l'en-tête :
+  vw_send((uint8_t*)"ACAR_RKMR", 10);
   vw_wait_tx();
 
+  // On envoie successivement chacune des trames :
+  for (register unsigned int i = 0; i < mCourante-1; i++)
+  {
+    mesures[i]->envoyer(&trame, i);
+
+    vw_send((uint8_t*)&trame, sizeof(Trame));
+    vw_wait_tx();
+  }
+
+  // On envoie le signal de fin de transmission :
   vw_send((uint8_t*)"TRA_FIN", 8);
-  vw_wait_tx();*/
-
-  Serial.println(sizeof(Segment));
-
-  // On insère successivement chacune des trames :
-  for (i = 0; i < mCourante; i++)
-    mesures[i]->envoyer(&segment.trames[i], i);
-
-  // On insère la fin de transmission :
-  memcpy(segment.fin, "TRA_FIN", 8);
-
-  // On transmet le segment :
-  vw_send((uint8_t*)&segment, 20);
-  //vw_send((uint8_t*)"Pootis !", 9);
   vw_wait_tx();
-
-  Serial.println("Transmited");
 }
 
 /*
