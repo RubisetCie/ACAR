@@ -21,6 +21,10 @@ public abstract class Main
         final Model model = new Model();
         final View view = new View(model.getCircuit());
         
+        // On démarre la vue :
+        view.init();
+        view.start();
+        
         // On instancie le contrôleur :
         final Controller controller = new Controller(model, view);
     }

@@ -11,7 +11,7 @@
 // Déclaration des constantes :
 #define I2C 0x0f      // L'adresse des moteurs "Grove"
 
-#define NB_M 32       // Le nombre de mesures possibles
+#define NB_M 22       // Le nombre de mesures possibles
 #define NB_T 20       // Le nombre d'octets dans la trame
 #define NB_S 16       // Le nombre de sommets du graphe
 #define NB_A 4        // Le nombre maximum d'arêtes par sommets
@@ -42,6 +42,30 @@
 #define SIL_TPSM 100  // Le seuil de validation minimum de mesure
 #define VITESSE 0.003 // La vitesse approximative du véhicule (centimètres/intérations)
 
+// Déclaration de la structure "Trame" représentant une trame de données :
+struct __attribute__((packed)) Trame
+{
+  public :
+    byte n;             // Le numéro de trame
+    byte dep;           // Le point de départ
+    byte arr;           // Le point d'arrivée
+
+    float mes;          // La mesure
+
+    unsigned short sum; // La somme de contrôle
+};
+
+// Déclaration de la structure "Segment" représentant le segment envoyé :
+struct __attribute__((packed)) Segment
+{
+  public :
+    char debut[10];     // L'en-tête de 10 octets
+
+    Trame trames[NB_M]; // L'ensemble des trames constituant les données
+    
+    char fin[8];        // Le signal de fin de 8 octets
+};
+
 // Déclaration de la classe "Point" représentant un point en 2D :
 class Point
 {
@@ -70,45 +94,35 @@ class Mesure
     Point* arete[NB_A];   // Les adresses des points accessibles (arêtes du graphe)
     Point* parent;        // L'adresse du point précédent dans la construction de chemin
     
-    unsigned int depart;  // Point de départ de la mesure
-    unsigned int arrivee; // Point d'arrivée de la mesure
+    byte depart;          // Point de départ de la mesure
+    byte arrivee;         // Point d'arrivée de la mesure
 
     float d;              // Distance mesurée
 
     // Constructeur :
-    Mesure(unsigned int dep, unsigned int arr, float mes) : depart(dep), arrivee(arr), d(mes)
+    Mesure(byte dep, byte arr, float mes) : depart(dep), arrivee(arr), d(mes)
     {
     }
 
     // Méthode "envoyer" afin d'envoyer la mesure via le protocole "ACAR_RKMR" :
-    void envoyer(uint8_t* trame, unsigned int n)
+    void envoyer(Trame* trame, unsigned int n)
     {
-      // On déclare la trame :
-      //uint8_t trame[NB_T];
-
       // On déclare les variables locales :
-      unsigned int sum = depart + arrivee + int(d);
-      unsigned int dep = depart * 5;
-      unsigned int arr = arrivee * 5;
+      unsigned short sum = depart + arrivee + int(d);
+      byte dep = depart * 5;
+      byte arr = arrivee * 5;
       float mes = d * 5.0f;
 
       // On chiffre les données :
       dep *= dep;   dep -= 10;
       arr *= arr;   arr -= 10;
       mes *= mes;   mes -= 10.0f;
-
-      // On remplit le numéro de trame :
-      memcpy(&trame[0], &n, 4);
-
-      // On remplit les numéros des points :
-      memcpy(&trame[4], &dep, 4);
-      memcpy(&trame[8], &arr, 4);
-
-      // On remplit la mesure :
-      memcpy(&trame[12], &mes, 4);
-
-      // On remplit la somme de contrôle :
-      memcpy(&trame[16], &sum, 4);
+      
+      trame->n = n;       // On remplit le numéro de trame
+      trame->dep = dep;   // On remplit le numéro du point de départ
+      trame->arr = arr;   // On remplit le numéro du point d'arrivée
+      trame->mes = mes;   // On remplit la mesure
+      trame->sum = sum;   // On remplit la somme de contrôle
     }
 };
 
@@ -130,18 +144,18 @@ enum Direction
 };
 
 // Déclaration des variables globales :
-Mesure* mesures[NB_M];  // Les mesures prises successivement
-Point* graphe[NB_S];    // Le graphe consitué de sommets et d'arrêtes (points)
-Direction chemin[NB_S]; // Le chemin à parcourir point par point
+Mesure* mesures[NB_M];    // Les mesures prises successivement
+Point* graphe[NB_S];      // Le graphe consitué de sommets et d'arrêtes (points)
+Direction chemin[NB_S];   // Le chemin à parcourir point par point
 
-unsigned int ptCourant; // Point sur lequel le robot se trouve
-unsigned int mCourante; // Mesure courante effectuée
-unsigned int cpL;       // Compteur pour détecter une intersection en L
-unsigned int cpI;       // Compteur pour détecter une intersection non-détectée
-unsigned long temps;    // Temps durant lequel la mesure est effectuée
-float angleCourant;     // Angle actuel du robot
+unsigned char ptCourant;  // Point sur lequel le robot se trouve
+unsigned char mCourante;  // Mesure courante effectuée
+unsigned int cpL;         // Compteur pour détecter une intersection en L
+unsigned int cpI;         // Compteur pour détecter une intersection non-détectée
+unsigned long temps;      // Temps durant lequel la mesure est effectuée
+float angleCourant;       // Angle actuel du robot
 
-Phase phase;            // La phase actuelle du robot
+Phase phase;              // La phase actuelle du robot
 
 /*
  *  FONCTIONS NATIVES ARDUINO
@@ -153,6 +167,7 @@ void setup()
   // On initialise les moteurs et l'émetteur :
   Serial.begin(9600);
   Motor.begin(I2C);
+  
   vw_set_tx_pin(CPT_EMT);
   vw_setup(2000);
 
@@ -177,6 +192,12 @@ void setup()
   cpI = 0;
   temps = 0;
   angleCourant = PI * 2.0f;
+
+  mesures[0] = new Mesure(0, 1, 20.0f);
+  mesures[1] = new Mesure(4, 6, 3.14f);
+  mCourante = 2;
+
+  emettre();
 }
 
 // Fonction "loop" exécutée continuellement :
@@ -212,9 +233,6 @@ void loop()
     if (cpI > 0)
       cpI--;
   }*/
-
-  lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D, cpt_M);
-  mesurer(cpt_M);
 }
 
 /*
@@ -402,22 +420,24 @@ void mesurer(int cpt_M)
 void emettre()
 {
   // On déclare les variables locales :
-  uint8_t segment[658];     // Ensemble du segment à transmettre (658 octets) :
+  Segment segment;          // Ensemble du segment à transmettre (658 octets) :
   register unsigned int i;
   
   // On insère l'en-tête :
-  memcpy(&segment[0], (uint8_t*)"ACAR_RKMR", 10);
+  memcpy(segment.debut, "ACAR_RKMR", 10);
 
   // On insère successivement chacune des trames :
-  for (register unsigned int i = 0; i < mCourante; i++)
-    mesures[i]->envoyer(&segment[10 + (i * 20)], i);
+  for (i = 0; i < mCourante; i++)
+    mesures[i]->envoyer(&segment.trames[i], i);
 
   // On insère la fin de transmission :
-  memcpy(&segment[10 + (i * 20)], (uint8_t*)"TRA_FIN", 8);
+  memcpy(segment.fin, "TRA_FIN", 8);
 
   // On transmet le segment :
-  vw_send((uint8_t*)&mesures[0]->d, 18 + (i * 20));
+  vw_send((uint8_t*)&segment, sizeof(segment));
   vw_wait_tx();
+
+  Serial.println("Transmited");
 }
 
 /*

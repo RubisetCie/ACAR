@@ -9,16 +9,31 @@
 
 // Déclaration des constantes :
 #define CPT_REC A0    // Le PIN correspondant au recepteur
+#define NB_M 22       // Le nombre de mesures possibles
 
-// Déclaration de l'énumération "Phase" permettant de décrire la phase de réception :
-enum Phase
+// Déclaration de la structure "Trame" représentant une trame de données :
+struct __attribute__((packed)) Trame
 {
-  PH_ATTENTE,
-  PH_LECTURE
+  public :
+    byte n;             // Le numéro de trame
+    byte dep;           // Le point de départ
+    byte arr;           // Le point d'arrivée
+
+    float mes;          // La mesure
+
+    unsigned short sum; // La somme de contrôle
 };
 
-// Déclaration des variables globales :
-Phase phase;
+// Déclaration de la structure "Segment" représentant le segment reçu :
+struct __attribute__((packed)) Segment
+{
+  public :
+    char debut[10];     // L'en-tête de 10 octets
+
+    Trame trames[NB_M]; // L'ensemble des trames constituant les données
+    
+    char fin[8];        // Le signal de fin de 8 octets
+};
 
 /*
  *  FONCTIONS NATIVES ARDUINO
@@ -33,9 +48,6 @@ void setup()
   vw_set_rx_pin(CPT_REC);
   vw_setup(2000);
 
-  // On initialise la phase :
-  phase = PH_ATTENTE;
-
   // On démarre l'écoute :
   vw_rx_start();
 }
@@ -44,29 +56,27 @@ void setup()
 void loop()
 {
   // On déclare les variables locales :
-  uint8_t buf[VW_MAX_MESSAGE_LEN];
-  uint8_t buflen = VW_MAX_MESSAGE_LEN;
+  Segment segment;
+  uint8_t len = VW_MAX_MESSAGE_LEN;
 
-  unsigned int num;
-  unsigned int depart;
-  unsigned int arrivee;
-  unsigned int sum;
+  byte num;
+  byte depart;
+  byte arrivee;
   float mesure;
+  unsigned short sum;
 
   // Lorsqu'un message est reçu :
-  if (vw_get_message(buf, &buflen))
+  if (vw_get_message((uint8_t*)&segment, &len))
   {
-    if (phase == PH_ATTENTE)
-    {
-      // On vérifie si la transmission nous appartient :
-      /*if (strcmp((char*)buf, "ACAR_RKMR") == 0)
-        phase = PH_LECTURE;*/
-      float* angle = (float*)buf;
-      
-      Serial.println(*angle);
-    }
+    Serial.println(segment.debut);
+    
+    // On vérifie si la transmission nous appartient :
+    /*if (strcmp((char*)&buf[0], "ACAR_RKMR") == 0)
+      Serial.println("Recieved");
     else
-    {
+      Serial.println("Not our : ");*/
+      
+    /*{
       if (strcmp((char*)buf, "TRA_FIN") != 0)
       {
         // Lecture des données :
@@ -85,6 +95,6 @@ void loop()
       }
       else
         phase = PH_ATTENTE;
-    }
+    }*/
   }
 }
