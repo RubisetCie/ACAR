@@ -55,6 +55,13 @@ struct __attribute__((packed)) Trame
     unsigned short sum; // La somme de contrôle
 };
 
+struct __attribute__((packed)) Test
+{
+  public :
+    char test[10];
+    char fin[8];
+};
+
 // Déclaration de la structure "Segment" représentant le segment envoyé :
 struct __attribute__((packed)) Segment
 {
@@ -233,6 +240,8 @@ void loop()
     if (cpI > 0)
       cpI--;
   }*/
+
+  delay(2000);
 }
 
 /*
@@ -420,11 +429,18 @@ void mesurer(int cpt_M)
 void emettre()
 {
   // On déclare les variables locales :
-  Segment segment;          // Ensemble du segment à transmettre (658 octets) :
+  Segment segment;          // Ensemble du segment à transmettre (216 octets) :
   register unsigned int i;
   
   // On insère l'en-tête :
   memcpy(segment.debut, "ACAR_RKMR", 10);
+  /*vw_send((uint8_t*)"ACAR_RKMR", 10);
+  vw_wait_tx();
+
+  vw_send((uint8_t*)"TRA_FIN", 8);
+  vw_wait_tx();*/
+
+  Serial.println(sizeof(Segment));
 
   // On insère successivement chacune des trames :
   for (i = 0; i < mCourante; i++)
@@ -434,7 +450,8 @@ void emettre()
   memcpy(segment.fin, "TRA_FIN", 8);
 
   // On transmet le segment :
-  vw_send((uint8_t*)&segment, sizeof(segment));
+  vw_send((uint8_t*)&segment, 20);
+  //vw_send((uint8_t*)"Pootis !", 9);
   vw_wait_tx();
 
   Serial.println("Transmited");

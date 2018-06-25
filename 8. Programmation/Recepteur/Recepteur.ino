@@ -57,7 +57,7 @@ void loop()
 {
   // On déclare les variables locales :
   Segment segment;
-  uint8_t len = VW_MAX_MESSAGE_LEN;
+  uint8_t len = sizeof(Segment);
 
   byte num;
   byte depart;
@@ -66,8 +66,11 @@ void loop()
   unsigned short sum;
 
   // Lorsqu'un message est reçu :
+  //vw_wait_rx();
+  
   if (vw_get_message((uint8_t*)&segment, &len))
   {
+    Serial.println(len);
     Serial.println(segment.debut);
     
     // On vérifie si la transmission nous appartient :

@@ -26,8 +26,7 @@ public class Model
         }
         catch (final IOException e)
         {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error !", JOptionPane.ERROR_MESSAGE);
-            System.exit(1);
+            e.printStackTrace();
         }
     }
     
