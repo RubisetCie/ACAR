@@ -26,7 +26,7 @@
 #define CPT_C 3       // Le PIN correspondant au capteur C (correction droit)
 #define CPT_D 6       // Le PIN correspondant au capteur D (sécurité droit)
 #define CPT_M A0      // Le PIN correspondant au capteur de distance
-#define CPT_EMT 4     // Le PIN correspondant à l'émetteur radio
+#define CPT_EMT 5     // Le PIN correspondant à l'émetteur radio
 
 #define SIL_DRA 285   // Le seuil pour avancer après une intersection
 #define SIL_DRR 95    // Le seuil pour tourner après une intersection
@@ -182,12 +182,6 @@ void setup()
   cpI = 0;
   temps = 0;
   angleCourant = PI * 2.0f;
-
-  mesures[0] = new Mesure(0, 1, 20.0f);
-  mesures[1] = new Mesure(4, 6, 3.14f);
-  mCourante = 2;
-
-  emettre();
 }
 
 // Fonction "loop" exécutée continuellement :
@@ -201,7 +195,7 @@ void loop()
   
   int cpt_M;            // Capteur de distance
 
-  /*if (phase != PH_ARRET)
+  if (phase != PH_ARRET)
   {
     // On lit les capteurs :
     lectureCapteurs(cpt_A, cpt_B, cpt_C, cpt_D, cpt_M);
@@ -222,7 +216,7 @@ void loop()
 
     if (cpI > 0)
       cpI--;
-  }*/
+  }
 }
 
 /*
@@ -410,20 +404,20 @@ void mesurer(int cpt_M)
 void emettre()
 {
   // On déclare les variables locales :
-  Trame trame;              // Trame à transmettre (9 octets)
+  Trame trame;              // Trame à transmettre (15 octets)
   
   // On envoie l'en-tête :
   vw_send((uint8_t*)"ACAR_RKMR", 10);
   vw_wait_tx();
 
   // On envoie successivement chacune des trames :
-  for (register unsigned int i = 0; i < mCourante-1; i++)
+  /*for (register unsigned int i = 0; i < mCourante-1; i++)
   {
     mesures[i]->envoyer(&trame, i);
 
     vw_send((uint8_t*)&trame, sizeof(Trame));
     vw_wait_tx();
-  }
+  }*/
 
   // On envoie le signal de fin de transmission :
   vw_send((uint8_t*)"TRA_FIN", 8);
@@ -563,7 +557,7 @@ void intersection(boolean sec)
       case DIR_DROIT  : phase = PH_AVANT; avance(); break;
       case DIR_GAUCHE : phase = PH_PIVOT; pivotGauche(); delay(SIL_DRP); break;
       case DIR_DROITE : phase = PH_PIVOT; pivotDroite(); delay(SIL_DRP); break;
-      case DIR_FIN    : phase = PH_ARRET; emettre(); arrete(); break;
+      case DIR_FIN    : phase = PH_ARRET; arrete(); emettre(); break;
     }
   }
   else
@@ -573,7 +567,7 @@ void intersection(boolean sec)
       case DIR_DROIT  : phase = PH_AVANT; avance(); delay(SIL_DRA); break;
       case DIR_GAUCHE : phase = PH_PIVOT; tourneGauche(); delay(SIL_DRR); break;
       case DIR_DROITE : phase = PH_PIVOT; tourneDroite(); delay(SIL_DRR); break;
-      case DIR_FIN    : phase = PH_ARRET; emettre(); arrete(); break;
+      case DIR_FIN    : phase = PH_ARRET; arrete(); emettre(); break;
     }
   }
 
@@ -594,8 +588,8 @@ void pointSuivant()
   {
     phase = PH_ARRET;
 
-    emettre();
     arrete();
+    emettre();
   }
 
   // On incrémente le point courant :

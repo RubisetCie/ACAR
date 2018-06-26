@@ -8,7 +8,7 @@
 #include <VirtualWire.h>
 
 // Déclaration des constantes :
-#define CPT_REC A0    // Le PIN correspondant au recepteur
+#define CPT_REC 4     // Le PIN correspondant au recepteur
 #define NB_M 22       // Le nombre de mesures possibles
 
 // Déclaration de la classe "Trame" représentant une trame de données :
@@ -78,6 +78,8 @@ void loop()
   vw_wait_rx();
   if (vw_get_message((uint8_t*)buf, &len))
   {
+    Serial.println(buf);
+    
     // On vérifie si la longueur du message est conséquente :
     if (len >= 8)
     {
