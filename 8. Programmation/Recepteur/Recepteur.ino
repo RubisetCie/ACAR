@@ -83,6 +83,13 @@ void loop()
     // On vérifie si la longueur du message est conséquente :
     if (len >= 8)
     {
+      // On vérifie si la transmission nous appartient :
+      if (strcmp(buf, "ACAR_RKMR") == 0)
+        phase = PH_LECTURE;
+      // On vérifie si la transmission est terminée :
+      else if (strcmp(buf, "TRA_FIN") == 0)
+        phase = PH_ATTENTE;
+        
       // Si l'on est en lecture, on lit les trames :
       if (phase == PH_LECTURE)
       {
@@ -94,13 +101,6 @@ void loop()
         else
           Serial.println("Somme non-controlee");
       }
-        
-      // On vérifie si la transmission nous appartient :
-      if (strcmp(buf, "ACAR_RKMR") == 0)
-        phase = PH_LECTURE;
-      // On vérifie si la transmission est terminée :
-      else if (strcmp(buf, "TRA_FIN") == 0)
-        phase = PH_ATTENTE;
     }
   }
 }
