@@ -12,7 +12,6 @@ import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
 
 public class Model
 {
@@ -21,8 +20,9 @@ public class Model
     {   
         try
         {
-            // Importation de l'image :
+            // Importation des images :
             this.circuit = ImageIO.read(new File("circuit.jpg"));
+            this.voiture = ImageIO.read(new File("car.png"));
         }
         catch (final IOException e)
         {
@@ -36,6 +36,13 @@ public class Model
         return this.circuit;
     }
     
+    // Permet de retourner le véhicule :
+    public Image getVoiture()
+    {
+        return this.voiture;
+    }
+    
     // Déclaration des attributs :
-    private Image circuit;
+    private Image circuit;  // L'image représentant le circuit
+    private Image voiture;  // L'image représentant le véhicule
 }

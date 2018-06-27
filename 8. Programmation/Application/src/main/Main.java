@@ -19,7 +19,7 @@ public abstract class Main
     {
         // On instancie les modules :
         final Model model = new Model();
-        final View view = new View(model.getCircuit());
+        final View view = new View(model.getCircuit(), model.getVoiture());
         
         // On démarre la vue :
         view.init();

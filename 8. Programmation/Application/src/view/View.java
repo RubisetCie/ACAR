@@ -20,7 +20,7 @@ import java.awt.event.WindowListener;
 public class View extends Applet implements WindowListener
 {
     // Constructeur :
-    public View(final Image circuit)
+    public View(final Image circuit, final Image voiture)
     {
         // Création de la fenêtre :
         this.frame = new Window();
@@ -29,6 +29,7 @@ public class View extends Applet implements WindowListener
         this.frame.setVisible(true);
         
         this.circuit = circuit;
+        this.voiture = voiture;
     }
     
     @Override
@@ -43,6 +44,9 @@ public class View extends Applet implements WindowListener
         
         // On dessine le graphe :
         g2.drawImage(this.circuit, 16, 16, this);
+        
+        // On dessine le véhicule :
+        g2.drawImage(this.voiture, 56, 56, this);
     }
     
     @Override
@@ -85,4 +89,5 @@ public class View extends Applet implements WindowListener
     // Déclaration des attributs :
     private final Window frame;     // La fenêtre principale
     private final Image circuit;    // L'image représentant le circuit
+    private final Image voiture;    // L'image représentant le véhicule
 }
